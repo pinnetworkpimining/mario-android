@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no" />
+    <title>Mario Game</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background: #000;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
+      }
+      #gameCanvas {
+        display: block;
+        margin: 0 auto;
+        background: linear-gradient(to bottom, #87CEEB 0%, #87CEEB 70%, #90EE90 70%, #90EE90 100%);
+      }
+      #ui {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        color: white;
+        font-size: 18px;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="ui">
+      <div>Score: <span id="score">0</span></div>
+      <div>Lives: <span id="lives">3</span></div>
+    </div>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
