@@ -49,4 +49,13 @@ export class Turtle {
     // Placeholder for defeat logic
     return false;
   }
+
+  public getBounds() {
+    return {
+      x: this.x,
+      y: this.y,
+      width: this.width,
+      height: this.height,
+    };
+  }
 }

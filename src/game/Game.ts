@@ -1,5 +1,6 @@
 import { Player } from './Player';
 import { Level } from './Level';
+import { Level2 } from './Level2';
 import { InputManager } from './InputManager';
 
 export class Game {
@@ -134,5 +135,10 @@ export class Game {
     
     // Draw player
     this.player.render(this.ctx);
+  }
+
+  public loadLevel2(): void {
+    this.level = new Level2();
+    this.start();
   }
 }
