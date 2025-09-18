@@ -36,53 +36,49 @@ describe('Player', () => {
 
   it('should not move horizontally when no keys are pressed', () => {
     const initialX = player.x
-    
     player.update(16, inputManager)
-    
     expect(player.x).toBe(initialX)
   })
 
-  it('should apply gravity when not on ground', () => {
-    const initialY = player.y
-    
-    player.update(16, inputManager)
-    
-    expect(player.y).toBeGreaterThan(initialY)
-  })
-
-  it('should jump when Space is pressed and on ground', () => {
+  it('should jump when Space is pressed and player is on ground', () => {
     player.setOnGround(true)
     inputManager.setKeyState('Space', true)
     const initialY = player.y
-    
     player.update(16, inputManager)
-    
     expect(player.y).toBeLessThan(initialY)
   })
 
-  it('should not jump when not on ground', () => {
+  it('should not jump when Space is pressed and player is not on ground', () => {
     player.setOnGround(false)
     inputManager.setKeyState('Space', true)
     const initialY = player.y
-    
     player.update(16, inputManager)
-    
-    expect(player.y).toBeGreaterThanOrEqual(initialY)
+    expect(player.y).toBe(initialY)
+  })
+
+  it('should apply gravity when not on ground', () => {
+    player.setOnGround(false)
+    const initialY = player.y
+    player.update(16, inputManager)
+    expect(player.y).toBeGreaterThan(initialY)
+  })
+
+  it('should lose life and handle death correctly', () => {
+    const initialLives = player.getLives()
+    player.loseLife()
+    expect(player.getLives()).toBe(initialLives - 1)
   })
 
   it('should reset position correctly', () => {
-    player.x = 200
-    player.y = 300
-    
+    player.setPosition(300, 500)
     player.reset(100, 400)
-    
     expect(player.x).toBe(100)
     expect(player.y).toBe(400)
+    expect(player.getVelocityY()).toBe(0)
   })
 
   it('should get correct bounds', () => {
     const bounds = player.getBounds()
-    
     expect(bounds.x).toBe(player.x)
     expect(bounds.y).toBe(player.y)
     expect(bounds.width).toBe(32)
@@ -91,7 +87,6 @@ describe('Player', () => {
 
   it('should set position correctly', () => {
     player.setPosition(150, 250)
-    
     expect(player.x).toBe(150)
     expect(player.y).toBe(250)
   })

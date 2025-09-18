@@ -1,30 +1,37 @@
 import { Player } from './Player';
 import { Turtle } from './Turtle';
 import { Game } from './Game';
+import { BaseLevel } from './BaseLevel';
 
-export class Level {
-  private platforms: Array<{x: number, y: number, width: number, height: number}> = [];
-  private turtles: Turtle[] = [];
-  private gameRunning: boolean = true; // Flag to control game loop
+export class Level extends BaseLevel {
+  protected platforms: Array<{x: number, y: number, width: number, height: number}> = []; // Changed from private to protected
+  protected turtles: Turtle[] = [];
+  protected gameRunning: boolean = true; // Flag to control game loop
 
   constructor() {
+    super();
     this.createLevel();
     this.spawnTurtles();
   }
 
-  private createLevel(): void {
-    // Ground platform
-    this.platforms.push({ x: 0, y: 550, width: 800, height: 50 });
-    
-    // Some floating platforms
-    this.platforms.push({ x: 200, y: 450, width: 100, height: 20 });
-    this.platforms.push({ x: 400, y: 350, width: 100, height: 20 });
-    this.platforms.push({ x: 600, y: 250, width: 100, height: 20 });
-    this.platforms.push({ x: 100, y: 300, width: 80, height: 20 });
-    this.platforms.push({ x: 500, y: 200, width: 80, height: 20 });
+  protected createLevel(): void {
+  // Responsive ground platform (fills canvas width)
+  const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
+  const width = canvas ? canvas.width : 1900;
+  const height = canvas ? canvas.height : 900;
+  // Ground height is 10% of screen height
+  const groundHeight = Math.round(height * 0.10);
+  this.platforms.push({ x: 0, y: height - groundHeight, width: width, height: groundHeight });
+
+  // Responsive floating platforms (relative positions)
+  this.platforms.push({ x: width * 0.12, y: height * 0.65, width: width * 0.08, height: 20 });
+  this.platforms.push({ x: width * 0.28, y: height * 0.52, width: width * 0.09, height: 20 });
+  this.platforms.push({ x: width * 0.45, y: height * 0.40, width: width * 0.09, height: 20 });
+  this.platforms.push({ x: width * 0.62, y: height * 0.30, width: width * 0.08, height: 20 });
+  this.platforms.push({ x: width * 0.75, y: height * 0.20, width: width * 0.07, height: 20 });
   }
 
-  private spawnTurtles(): void {
+  protected spawnTurtles(): void {
     this.turtles.push(new Turtle(300, 518)); // Spawn a turtle on the ground
     this.turtles.push(new Turtle(500, 518)); // Spawn another turtle
   }
@@ -37,13 +44,18 @@ export class Level {
 
   public render(ctx: CanvasRenderingContext2D): void {
     // Draw platforms
-    this.platforms.forEach(platform => {
-      ctx.fillStyle = '#8B4513'; // Brown color for platforms
-      ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
-      
-      // Add some texture
-      ctx.fillStyle = '#A0522D';
-      ctx.fillRect(platform.x + 2, platform.y + 2, platform.width - 4, platform.height - 4);
+    this.platforms.forEach((platform, idx) => {
+      if (idx === 0) {
+        // Ground platform: fill entire bottom
+        ctx.fillStyle = '#90EE90'; // Green ground
+        ctx.fillRect(0, platform.y, ctx.canvas.width, ctx.canvas.height - platform.y);
+      } else {
+        ctx.fillStyle = '#8B4513'; // Brown color for platforms
+        ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+        // Add some texture
+        ctx.fillStyle = '#A0522D';
+        ctx.fillRect(platform.x + 2, platform.y + 2, platform.width - 4, platform.height - 4);
+      }
     });
 
     // Draw turtles
@@ -113,7 +125,7 @@ export class Level {
     }
   }
 
-  private endGame(won: boolean): void {
+  public endGame(won: boolean): void {
     if (!this.gameRunning) return; // Prevent multiple calls to endGame
 
     this.gameRunning = false; // Stop the game loop
@@ -121,7 +133,7 @@ export class Level {
 
     if (won) {
       const message = document.createElement('div');
-      message.textContent = 'You Win! Loading next level...';
+      message.textContent = 'Level 1 Complete! Loading Level 2...';
       message.style.position = 'absolute';
       message.style.top = '50%';
       message.style.left = '50%';

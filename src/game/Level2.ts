@@ -1,37 +1,57 @@
 import { Player } from './Player';
 import { FlyingEnemy } from './FlyingEnemy';
 import { Turtle } from './Turtle';
+import { Level } from './Level';
 
-export class Level2 {
-  private platforms: Array<{ x: number; y: number; width: number; height: number }> = [];
-  private turtles: Turtle[] = [];
-  private flyingEnemies: FlyingEnemy[] = [];
+export class Level2 extends Level {
+  protected platforms: Array<{ x: number; y: number; width: number; height: number }> = []; // Changed from private to protected
+  protected turtles: Turtle[] = [];
+  protected flyingEnemies: FlyingEnemy[] = [];
 
-  private gameRunning: boolean = true;
+  protected gameRunning: boolean = true; // Changed from private to protected
 
   constructor() {
+    super();
     this.createLevel();
     this.spawnEnemies();
   }
 
-  private createLevel(): void {
-    // Ground platform
-    this.platforms.push({ x: 0, y: 550, width: 800, height: 50 });
+  protected createLevel(): void {
+    // Responsive ground platform (fills canvas width)
+    const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
+    const width = canvas ? canvas.width : 1900;
+    const height = canvas ? canvas.height : 900;
+    const groundHeight = Math.round(height * 0.1); // Higher ground for better jump
+    this.platforms.push({ x: 0, y: height - groundHeight, width: width, height: groundHeight });
 
-    // Floating platforms
-    this.platforms.push({ x: 150, y: 450, width: 100, height: 20 });
-    this.platforms.push({ x: 350, y: 350, width: 100, height: 20 });
-    this.platforms.push({ x: 550, y: 250, width: 100, height: 20 });
-    this.platforms.push({ x: 250, y: 300, width: 80, height: 20 });
-    this.platforms.push({ x: 450, y: 200, width: 80, height: 20 });
+    // Responsive floating platforms (higher for Mario's jump)
+    this.platforms.push({ x: width * 0.12, y: height * 0.60, width: width * 0.09, height: 24 });
+    this.platforms.push({ x: width * 0.32, y: height * 0.48, width: width * 0.10, height: 24 });
+    this.platforms.push({ x: width * 0.54, y: height * 0.36, width: width * 0.10, height: 24 });
+    this.platforms.push({ x: width * 0.72, y: height * 0.26, width: width * 0.09, height: 24 });
+    this.platforms.push({ x: width * 0.85, y: height * 0.16, width: width * 0.08, height: 24 });
   }
 
   private spawnEnemies(): void {
-    this.turtles.push(new Turtle(300, 518)); // Ground turtle
-    this.turtles.push(new Turtle(500, 518)); // Another ground turtle
+    this.spawnTurtles();
 
-    this.flyingEnemies.push(new FlyingEnemy(200, 400)); // Flying enemy
-    this.flyingEnemies.push(new FlyingEnemy(600, 300)); // Another flying enemy
+    // Place flying enemies above platforms for visibility
+    const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
+    const width = canvas ? canvas.width : 1900;
+    const height = canvas ? canvas.height : 900;
+    this.flyingEnemies.push(new FlyingEnemy(width * 0.15, height * 0.55));
+    this.flyingEnemies.push(new FlyingEnemy(width * 0.60, height * 0.32));
+  }
+
+  protected spawnTurtles(): void {
+    const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
+    const width = canvas ? canvas.width : 1900;
+    const height = canvas ? canvas.height : 900;
+    const groundHeight = Math.round(height * 0.13);
+    const groundY = height - groundHeight;
+    // Place turtles on ground, spaced out
+    this.turtles.push(new Turtle(width * 0.25, groundY - 32));
+    this.turtles.push(new Turtle(width * 0.55, groundY - 32));
   }
 
   public update(deltaTime: number): void {
@@ -43,13 +63,18 @@ export class Level2 {
 
   public render(ctx: CanvasRenderingContext2D): void {
     // Draw platforms
-    this.platforms.forEach((platform) => {
-      ctx.fillStyle = '#8B4513'; // Brown color for platforms
-      ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
-
-      // Add some texture
-      ctx.fillStyle = '#A0522D';
-      ctx.fillRect(platform.x + 2, platform.y + 2, platform.width - 4, platform.height - 4);
+    this.platforms.forEach((platform, idx) => {
+      if (idx === 0) {
+        // Ground platform: fill entire bottom
+        ctx.fillStyle = '#90EE90'; // Green ground
+        ctx.fillRect(0, platform.y, ctx.canvas.width, ctx.canvas.height - platform.y);
+      } else {
+        ctx.fillStyle = '#8B4513'; // Brown color for platforms
+        ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+        // Add some texture
+        ctx.fillStyle = '#A0522D';
+        ctx.fillRect(platform.x + 2, platform.y + 2, platform.width - 4, platform.height - 4);
+      }
     });
 
     // Draw turtles
@@ -121,13 +146,10 @@ export class Level2 {
     });
   }
 
-  private endGame(won: boolean): void {
-    if (!this.gameRunning) return; // Prevent multiple calls to endGame
-
-    this.gameRunning = false;
+  public endGame(won: boolean): void {
     if (won) {
       const message = document.createElement('div');
-      message.textContent = 'You Win Level 2! Restarting...';
+      message.textContent = 'Congratulations! You have completed the game!';
       message.style.position = 'absolute';
       message.style.top = '50%';
       message.style.left = '50%';
@@ -139,7 +161,18 @@ export class Level2 {
       message.style.borderRadius = '5px';
       document.body.appendChild(message);
 
-      setTimeout(() => window.location.reload(), 2000);
+      // Add a play again button
+      const playAgainBtn = document.createElement('button');
+      playAgainBtn.textContent = 'Play Again';
+      playAgainBtn.style.position = 'absolute';
+      playAgainBtn.style.top = '60%';
+      playAgainBtn.style.left = '50%';
+      playAgainBtn.style.transform = 'translate(-50%, -50%)';
+      playAgainBtn.style.padding = '10px 20px';
+      playAgainBtn.style.fontSize = '18px';
+      playAgainBtn.style.cursor = 'pointer';
+      playAgainBtn.onclick = () => window.location.reload();
+      document.body.appendChild(playAgainBtn);
     } else {
       const message = document.createElement('div');
       message.textContent = 'Game Over! Restarting...';

@@ -15,14 +15,15 @@ export class Game {
   private gameRunning: boolean = false;
 
   constructor(canvas: HTMLCanvasElement) {
-    this.canvas = canvas;
-    this.ctx = canvas.getContext('2d')!;
-    this.inputManager = new InputManager();
-    this.player = new Player(100, 400);
-    this.level = new Level();
-    
-    this.setupEventListeners();
-    this.inputManager.initializeTouchControls();
+  this.canvas = canvas;
+  this.ctx = canvas.getContext('2d')!;
+  this.inputManager = new InputManager();
+  this.level = new Level();
+  // Place Mario on the ground, centered horizontally
+  const groundY = this.canvas.height - Math.round(this.canvas.height * 0.10);
+  this.player = new Player(this.canvas.width * 0.08, groundY - 32); // 32 = Mario's height
+  this.setupEventListeners();
+  this.inputManager.initializeTouchControls();
   }
 
   private setupEventListeners(): void {

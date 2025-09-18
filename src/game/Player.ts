@@ -43,9 +43,11 @@ export class Player {
     this.x += this.velocityX * dt;
     this.y += this.velocityY * dt;
 
-    // Keep player on screen
-    if (this.x < 0) this.x = 0;
-    if (this.x + this.width > 800) this.x = 800 - this.width;
+  // Keep player on screen (dynamic canvas width)
+  const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
+  const maxWidth = canvas ? canvas.width : 1900;
+  if (this.x < 0) this.x = 0;
+  if (this.x + this.width > maxWidth) this.x = maxWidth - this.width;
 
     // Reset ground state
     this.onGround = false;
