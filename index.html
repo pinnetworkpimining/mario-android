@@ -26,6 +26,28 @@
         font-size: 18px;
         text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
       }
+      .touch-controls {
+        position: absolute;
+        bottom: 20px;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+      }
+      .touch-button {
+        width: 60px;
+        height: 60px;
+        background: rgba(255, 255, 255, 0.8);
+        border-radius: 50%;
+        border: none;
+        font-size: 18px;
+        font-weight: bold;
+        color: #000;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+      }
+      .touch-button:active {
+        background: rgba(200, 200, 200, 0.8);
+      }
     </style>
   </head>
   <body>
@@ -34,6 +56,11 @@
       <div>Lives: <span id="lives">3</span></div>
     </div>
     <canvas id="gameCanvas" width="800" height="600"></canvas>
+    <div class="touch-controls">
+      <button class="touch-button" id="leftButton">⬅</button>
+      <button class="touch-button" id="jumpButton">⬆</button>
+      <button class="touch-button" id="rightButton">➡</button>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

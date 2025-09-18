@@ -21,6 +21,7 @@ export class Game {
     this.level = new Level();
     
     this.setupEventListeners();
+    this.inputManager.initializeTouchControls();
   }
 
   private setupEventListeners(): void {
