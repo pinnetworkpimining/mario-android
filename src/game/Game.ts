@@ -77,6 +77,9 @@ export class Game {
     // Update player
     this.player.update(deltaTime, this.inputManager);
     
+    // Update level (including enemies)
+    this.level.update(deltaTime);
+    
     // Check collisions
     this.checkCollisions();
     
@@ -115,6 +118,7 @@ export class Game {
 
   private updateUI(): void {
     const scoreElement = document.getElementById('score');
+    // Update lives display
     const livesElement = document.getElementById('lives');
     
     if (scoreElement) scoreElement.textContent = this.score.toString();

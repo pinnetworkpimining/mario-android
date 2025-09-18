@@ -11,6 +11,7 @@ export class Player {
   private jumpPower: number = 400;
   private gravity: number = 800;
   private onGround: boolean = false;
+  private lives: number = 3;
 
   constructor(x: number, y: number) {
     this.x = x;
@@ -114,5 +115,13 @@ export class Player {
 
   public setVelocityY(velocity: number): void {
     this.velocityY = velocity;
+  }
+
+  public loseLife(): void {
+    this.lives -= 1;
+  }
+
+  public getLives(): number {
+    return this.lives;
   }
 }

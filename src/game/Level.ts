@@ -1,10 +1,14 @@
 import { Player } from './Player';
+import { Turtle } from './Turtle';
 
 export class Level {
   private platforms: Array<{x: number, y: number, width: number, height: number}> = [];
+  private turtles: Turtle[] = [];
+  private gameRunning: boolean = true; // Flag to control game loop
 
   constructor() {
     this.createLevel();
+    this.spawnTurtles();
   }
 
   private createLevel(): void {
@@ -19,6 +23,17 @@ export class Level {
     this.platforms.push({ x: 500, y: 200, width: 80, height: 20 });
   }
 
+  private spawnTurtles(): void {
+    this.turtles.push(new Turtle(300, 518)); // Spawn a turtle on the ground
+    this.turtles.push(new Turtle(500, 518)); // Spawn another turtle
+  }
+
+  public update(deltaTime: number): void {
+    if (!this.gameRunning) return; // Skip update if game is not running
+
+    this.turtles.forEach(turtle => turtle.update(deltaTime));
+  }
+
   public render(ctx: CanvasRenderingContext2D): void {
     // Draw platforms
     this.platforms.forEach(platform => {
@@ -29,6 +44,9 @@ export class Level {
       ctx.fillStyle = '#A0522D';
       ctx.fillRect(platform.x + 2, platform.y + 2, platform.width - 4, platform.height - 4);
     });
+
+    // Draw turtles
+    this.turtles.forEach(turtle => turtle.render(ctx));
   }
 
   public checkCollisions(player: Player): void {
@@ -63,5 +81,45 @@ export class Level {
     if (!onGround) {
       player.setOnGround(false);
     }
+
+    // Check collisions with turtles
+    this.turtles.forEach(turtle => {
+      const turtleBounds = { x: turtle.x, y: turtle.y, width: 32, height: 32 };
+
+      if (
+        playerBounds.x < turtleBounds.x + turtleBounds.width &&
+        playerBounds.x + playerBounds.width > turtleBounds.x &&
+        playerBounds.y < turtleBounds.y + turtleBounds.height &&
+        playerBounds.y + playerBounds.height > turtleBounds.y
+      ) {
+        if (player.getVelocityY() > 0 && playerBounds.y + playerBounds.height <= turtleBounds.y + 10) {
+          // Player defeats the turtle by jumping on it
+          this.turtles = this.turtles.filter(t => t !== turtle);
+        } else {
+          // Player loses if touching the turtle from the side or bottom
+          player.loseLife();
+          if (player.getLives() <= 0) {
+            this.endGame(false); // Lose condition
+          } else {
+            player.setPosition(100, 400); // Reset player position
+          }
+        }
+      }
+    });
+
+    if (this.turtles.length === 0) {
+      this.endGame(true); // Win condition
+    }
+  }
+
+  private endGame(won: boolean): void {
+    this.gameRunning = false; // Stop the game loop
+
+    if (won) {
+      alert('You win!');
+    } else {
+      alert('Game over!');
+    }
+    setTimeout(() => window.location.reload(), 1000); // Restart the game after 1 second
   }
 }
