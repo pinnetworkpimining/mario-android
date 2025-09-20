@@ -25,6 +25,7 @@ describe('Level', () => {
     const mockCtx = {
       fillRect: vi.fn(),
       fillStyle: '',
+      canvas: { width: 800, height: 600 },
     } as any
 
     expect(() => level.render(mockCtx)).not.toThrow()

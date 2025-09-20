@@ -1,4 +1,4 @@
-import { InputManager } from './InputManager';
+// import { InputManager } from './InputManager';
 
 export class Turtle {
   public x: number;
@@ -6,7 +6,7 @@ export class Turtle {
   private width: number = 32;
   private height: number = 32;
   private velocityX: number = -50; // Default movement speed
-  private onGround: boolean = true;
+  // private onGround: boolean = true; // Unused
   private animationFrame: number = 0;
   private animationTimer: number = 0;
   private animationInterval: number = 200; // Milliseconds per frame

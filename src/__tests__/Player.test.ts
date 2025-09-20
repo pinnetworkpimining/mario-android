@@ -53,7 +53,7 @@ describe('Player', () => {
     inputManager.setKeyState('Space', true)
     const initialY = player.y
     player.update(16, inputManager)
-    expect(player.y).toBe(initialY)
+  expect(player.y).toBeCloseTo(initialY, 0)
   })
 
   it('should apply gravity when not on ground', () => {

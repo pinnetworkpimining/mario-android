@@ -4,7 +4,7 @@ export class FlyingEnemy {
   private width: number = 32;
   private height: number = 32;
   private velocityX: number = 100; // Horizontal speed
-  private velocityY: number = 50; // Vertical oscillation speed
+  // private velocityY: number = 50; // Vertical oscillation speed (unused)
   private amplitude: number = 20; // Oscillation amplitude
   private baseY: number;
 

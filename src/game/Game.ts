@@ -1,6 +1,6 @@
 import { Player } from './Player';
 import { Level } from './Level';
-import { Level2 } from './Level2';
+
 import { InputManager } from './InputManager';
 
 export class Game {
@@ -139,6 +139,8 @@ export class Game {
   }
 
   public loadLevel2(): void {
+    // Dynamically import Level2 to avoid circular dependency
+    const { Level2 } = require('./Level2');
     this.level = new Level2();
     this.start();
   }
