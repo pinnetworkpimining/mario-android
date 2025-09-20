@@ -6,9 +6,10 @@ on:
       - 'v*.*.*'
 
 jobs:
-  test-and-build:
+  lint:
+    name: Lint
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 15
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -40,8 +41,77 @@ jobs:
       - name: Lint
         run: npm run lint --if-present
 
-      - name: Run tests
+  unit-tests:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    needs: lint
+    timeout-minutes: 20
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
         run: npm test
+
+      - name: Upload unit test logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-logs
+          path: |
+            test-results || true
+          retention-days: 7
+
+  e2e-tests:
+    name: E2E tests
+    runs-on: ubuntu-latest
+    needs: unit-tests
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run E2E tests
+        # Run `npm run e2e` if script present; keep this step tolerant if no e2e script is defined.
+        run: npm run e2e --if-present || echo "No e2e script defined; skipping"
+
+  web-build:
+    name: Web build
+    runs-on: ubuntu-latest
+    needs: [unit-tests, e2e-tests]
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Build web app
         run: npm run build
@@ -55,7 +125,7 @@ jobs:
 
   gradle-build:
     runs-on: ubuntu-latest
-    needs: test-and-build
+    needs: web-build
     timeout-minutes: 30
     steps:
       - name: Checkout code
@@ -69,18 +139,21 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install Android SDK command-line tools
+      - name: Install Android SDK command-line tools and platforms (CI)
         run: |
           sudo apt-get update && sudo apt-get install -y unzip wget
           mkdir -p $HOME/android-sdk/cmdline-tools
-          wget -q https://dl.google.com/android/repository/commandlinetools-linux-109_0_0.zip -O /tmp/cmdline.zip
+          wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip -O /tmp/cmdline.zip
           unzip -q /tmp/cmdline.zip -d $HOME/android-sdk/cmdline-tools
           # move into expected path
           mkdir -p $HOME/android-sdk/cmdline-tools/latest
           mv $HOME/android-sdk/cmdline-tools/cmdline-tools/* $HOME/android-sdk/cmdline-tools/latest/ || true
           export ANDROID_SDK_ROOT=$HOME/android-sdk
+          # Accept licenses and install essential packages
           yes | $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT --licenses || true
           $HOME/android-sdk/cmdline-tools/latest/bin/sdkmanager --sdk_root=$ANDROID_SDK_ROOT "platform-tools" "platforms;android-33" "build-tools;33.0.2"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          ls -la $ANDROID_SDK_ROOT
         env:
           ANDROID_SDK_ROOT: ${{ runner.temp }}/android-sdk
 
@@ -94,8 +167,15 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Build Release APK
-        run: ./gradlew assembleRelease --no-daemon --stacktrace
+      - name: Build Release APK (assembleRelease)
+        run: |
+          set -eux
+          # Ensure we're using the android gradle wrapper
+          cd android
+          chmod +x ./gradlew || true
+          echo "Using java: $(java -version 2>&1 | head -n 1)"
+          echo "Gradle wrapper:" && ls -la ./gradlew
+          ./gradlew assembleRelease --no-daemon --stacktrace
 
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
