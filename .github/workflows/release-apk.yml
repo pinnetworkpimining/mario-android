@@ -157,6 +157,10 @@ jobs:
         env:
           ANDROID_SDK_ROOT: ${{ runner.temp }}/android-sdk
 
+
+      - name: Install Node.js dependencies (for Capacitor Android)
+        run: npm ci
+
       - name: Cache Gradle packages
         uses: actions/cache@v4
         with:
