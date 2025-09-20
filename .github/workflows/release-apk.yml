@@ -28,15 +28,19 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+        working-directory: ${{ github.workspace }}
 
       - name: Lint
         run: npm run lint --if-present
+        working-directory: ${{ github.workspace }}
 
       - name: Run tests
         run: npm test
+        working-directory: ${{ github.workspace }}
 
       - name: Build web app
         run: npm run build
+        working-directory: ${{ github.workspace }}
 
       - name: Upload web build artifact
         uses: actions/upload-artifact@v4
@@ -44,6 +48,7 @@ jobs:
           name: web-build
           path: dist/
           retention-days: 7
+        working-directory: ${{ github.workspace }}
 
   gradle-build:
     runs-on: ubuntu-latest
@@ -70,9 +75,8 @@ jobs:
             ${{ runner.os }}-gradle-
 
       - name: Build Release APK
-        run: |
-          cd android
-          ./gradlew assembleRelease --no-daemon --stacktrace
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
+        working-directory: ${{ github.workspace }}/android
 
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
@@ -80,6 +84,7 @@ jobs:
           name: app-release-apk
           path: android/app/build/outputs/apk/release/*.apk
           retention-days: 30
+        working-directory: ${{ github.workspace }}
 
   release:
     needs: gradle-build
