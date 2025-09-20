@@ -54,6 +54,27 @@
         padding-bottom: 2vw;
         background: linear-gradient(to top, rgba(200,255,200,0.7) 60%, rgba(255,255,255,0));
       }
+        .release-btn {
+          position: fixed;
+          left: 50%;
+          bottom: 2vw;
+          transform: translateX(-50%);
+          z-index: 20;
+          background: linear-gradient(145deg, #ffecb3 60%, #ffd54f 100%);
+          color: #333;
+          border: none;
+          border-radius: 2vw;
+          font-size: 2.5vw;
+          font-weight: bold;
+          padding: 1vw 6vw;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+          cursor: pointer;
+          outline: none;
+          transition: background 0.2s;
+        }
+        .release-btn:active {
+          background: linear-gradient(145deg, #ffd54f 60%, #ffecb3 100%);
+        }
       .touch-button {
         width: 11vw;
         height: 11vw;
@@ -100,6 +121,7 @@
       <div>Lives: <span id="lives">3</span></div>
     </div>
     <canvas id="gameCanvas" width="1900" height="900"></canvas>
+      <button class="release-btn" onclick="alert('Release action!')">Release</button>
     <div class="touch-controls">
       <button class="touch-button" id="leftButton">
         <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
