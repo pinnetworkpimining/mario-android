@@ -161,12 +161,13 @@ export class Game {
 
   private updateUI(): void {
     const scoreElement = document.getElementById('score');
-    // Update lives display
     const livesElement = document.getElementById('lives');
+    const healthElement = document.getElementById('health');
     const dateElement = document.getElementById('game-date');
 
     if (scoreElement) scoreElement.textContent = this.score.toString();
     if (livesElement) livesElement.textContent = this.lives.toString();
+    if (healthElement) healthElement.textContent = this.player.getHealth().toString();
     if (dateElement) {
       const now = new Date();
       // Format: YYYY-MM-DD

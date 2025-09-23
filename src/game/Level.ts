@@ -49,23 +49,93 @@ export class Level extends BaseLevel {
   }
 
   public render(ctx: CanvasRenderingContext2D): void {
+    // Draw background gradient
+    const gradient = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
+    gradient.addColorStop(0, '#87CEEB'); // Sky blue
+    gradient.addColorStop(0.7, '#98FB98'); // Pale green
+    gradient.addColorStop(1, '#228B22'); // Forest green
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+    
+    // Draw clouds
+    this.renderClouds(ctx);
+    
     // Draw platforms
     this.platforms.forEach((platform, idx) => {
       if (idx === 0) {
-        // Ground platform: fill entire bottom
-        ctx.fillStyle = '#90EE90'; // Green ground
-        ctx.fillRect(0, platform.y, ctx.canvas.width, ctx.canvas.height - platform.y);
+        this.renderGround(ctx, platform);
       } else {
-        ctx.fillStyle = '#8B4513'; // Brown color for platforms
-        ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
-        // Add some texture
-        ctx.fillStyle = '#A0522D';
-        ctx.fillRect(platform.x + 2, platform.y + 2, platform.width - 4, platform.height - 4);
+        this.renderPlatform(ctx, platform);
       }
     });
 
     // Draw turtles
     this.turtles.forEach(turtle => turtle.render(ctx));
+  }
+
+  private renderClouds(ctx: CanvasRenderingContext2D): void {
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+    const scale = Math.min(window.innerWidth / 1900, window.innerHeight / 900);
+    
+    // Cloud 1
+    this.drawCloud(ctx, 200 * scale, 100 * scale, 60 * scale);
+    // Cloud 2
+    this.drawCloud(ctx, 600 * scale, 80 * scale, 80 * scale);
+    // Cloud 3
+    this.drawCloud(ctx, 1200 * scale, 120 * scale, 50 * scale);
+  }
+
+  private drawCloud(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
+    ctx.beginPath();
+    ctx.arc(x, y, size * 0.5, 0, Math.PI * 2);
+    ctx.arc(x + size * 0.3, y, size * 0.7, 0, Math.PI * 2);
+    ctx.arc(x + size * 0.6, y, size * 0.5, 0, Math.PI * 2);
+    ctx.arc(x + size * 0.3, y - size * 0.3, size * 0.4, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  private renderGround(ctx: CanvasRenderingContext2D, platform: any): void {
+    // Ground with grass texture
+    const gradient = ctx.createLinearGradient(0, platform.y, 0, ctx.canvas.height);
+    gradient.addColorStop(0, '#32CD32'); // Lime green
+    gradient.addColorStop(0.3, '#228B22'); // Forest green
+    gradient.addColorStop(1, '#8B4513'); // Saddle brown (dirt)
+    
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, platform.y, ctx.canvas.width, ctx.canvas.height - platform.y);
+    
+    // Add grass blades
+    ctx.fillStyle = '#00FF00';
+    for (let i = 0; i < ctx.canvas.width; i += 20) {
+      const grassHeight = Math.random() * 10 + 5;
+      ctx.fillRect(i, platform.y - grassHeight, 2, grassHeight);
+      ctx.fillRect(i + 5, platform.y - grassHeight * 0.8, 2, grassHeight * 0.8);
+      ctx.fillRect(i + 10, platform.y - grassHeight * 1.2, 2, grassHeight * 1.2);
+    }
+  }
+
+  private renderPlatform(ctx: CanvasRenderingContext2D, platform: any): void {
+    // Platform with metallic/stone texture
+    const gradient = ctx.createLinearGradient(platform.x, platform.y, platform.x, platform.y + platform.height);
+    gradient.addColorStop(0, '#C0C0C0'); // Silver
+    gradient.addColorStop(0.5, '#808080'); // Gray
+    gradient.addColorStop(1, '#404040'); // Dark gray
+    
+    ctx.fillStyle = gradient;
+    ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+    
+    // Add border/edge highlight
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(platform.x, platform.y, platform.width, 2);
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(platform.x, platform.y + platform.height - 2, platform.width, 2);
+    
+    // Add rivets/details
+    ctx.fillStyle = '#FFD700';
+    for (let i = platform.x + 10; i < platform.x + platform.width - 10; i += 20) {
+      ctx.fillRect(i, platform.y + 4, 4, 4);
+      ctx.fillRect(i, platform.y + platform.height - 8, 4, 4);
+    }
   }
 
   public checkCollisions(player: Player): void {
@@ -102,8 +172,12 @@ export class Level extends BaseLevel {
     }
 
     // Check collisions with turtles
-    this.turtles.forEach(turtle => {
-      const turtleBounds = { x: turtle.x, y: turtle.y, width: 32, height: 32 };
+    this.turtles = this.turtles.filter(turtle => {
+      if (turtle.isDefeated()) {
+        return false; // Remove defeated turtles
+      }
+      
+      const turtleBounds = turtle.getBounds();
 
       if (
         playerBounds.x < turtleBounds.x + turtleBounds.width &&
@@ -112,10 +186,11 @@ export class Level extends BaseLevel {
         playerBounds.y + playerBounds.height > turtleBounds.y
       ) {
         if (player.getVelocityY() > 0 && playerBounds.y + playerBounds.height <= turtleBounds.y + 10) {
-          // Player defeats the turtle by jumping on it
-          this.turtles = this.turtles.filter(t => t !== turtle);
+          // Player damages the turtle by jumping on it
+          turtle.takeDamage();
+          player.setVelocityY(-200); // Small bounce
         } else {
-          // Player loses if touching the turtle from the side or bottom
+          // Player loses health if touching the turtle from the side or bottom
           player.loseLife();
           if (player.getLives() <= 0) {
             this.endGame(false); // Lose condition
@@ -124,6 +199,8 @@ export class Level extends BaseLevel {
           }
         }
       }
+      
+      return true; // Keep turtle in array
     });
 
     if (this.turtles.length === 0) {
