@@ -21,7 +21,7 @@ export class Level2 extends Level {
     const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
     const width = canvas ? canvas.width : 1900;
     const height = canvas ? canvas.height : 900;
-    const groundHeight = Math.round(height * 0.8); // Higher ground for better jump
+    const groundHeight = Math.round(height * 3.1); // Higher ground for better jump
     this.platforms.push({ x: 0, y: height - groundHeight, width: width, height: groundHeight });
 
     // Responsive floating platforms (higher for Mario's jump)
