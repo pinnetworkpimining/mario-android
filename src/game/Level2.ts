@@ -32,7 +32,7 @@ export class Level2 extends Level {
     this.platforms.push({ x: width * 0.85, y: height * 0.16, width: width * 0.08, height: 24 });
   }
 
-  private spawnEnemies(): void {
+  protected spawnEnemies(): void {
     this.spawnTurtles();
 
     // Place flying enemies above platforms for visibility
@@ -149,7 +149,7 @@ export class Level2 extends Level {
   public endGame(won: boolean): void {
     if (won) {
       const message = document.createElement('div');
-      message.textContent = 'Congratulations! You have completed the game!';
+      message.textContent = 'Level 2 Complete! Loading Level 3...';
       message.style.position = 'absolute';
       message.style.top = '50%';
       message.style.left = '50%';
@@ -161,18 +161,10 @@ export class Level2 extends Level {
       message.style.borderRadius = '5px';
       document.body.appendChild(message);
 
-      // Add a play again button
-      const playAgainBtn = document.createElement('button');
-      playAgainBtn.textContent = 'Play Again';
-      playAgainBtn.style.position = 'absolute';
-      playAgainBtn.style.top = '60%';
-      playAgainBtn.style.left = '50%';
-      playAgainBtn.style.transform = 'translate(-50%, -50%)';
-      playAgainBtn.style.padding = '10px 20px';
-      playAgainBtn.style.fontSize = '18px';
-      playAgainBtn.style.cursor = 'pointer';
-      playAgainBtn.onclick = () => window.location.reload();
-      document.body.appendChild(playAgainBtn);
+      setTimeout(() => {
+        const game = new (require('./Game').Game)(document.getElementById('gameCanvas'));
+        game.loadLevel3();
+      }, 2000);
     } else {
       const message = document.createElement('div');
       message.textContent = 'Game Over! Restarting...';

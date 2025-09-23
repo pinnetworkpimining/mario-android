@@ -52,6 +52,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
+      - name: Build web app (Vite)
+        run: npm run build
+
+      - name: Copy web assets to Android (Capacitor)
+        run: npx cap copy android
+
       - name: Build Release APK (assembleRelease)
         run: |
           set -eux

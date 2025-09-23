@@ -25,10 +25,9 @@ android/app/build/outputs/apk/debug/!*.apks
 android/app/build/outputs/apk/debug/!*.json
 android/local.properties
 android/.gradle/
-android/gradle/
-android/gradlew
-android/gradlew.bat
-android/capacitor-cordova-android-plugins/
+# allow cordova plugins for CI build
+!android/capacitor-cordova-android-plugins/
+!android/capacitor-cordova-android-plugins/**
 /home/codespace/android-sdk/
 cmdline-tools/
 platform-tools/
@@ -81,8 +80,7 @@ logs
 .DS_Store
 Thumbs.db
 
-# Capacitor
-android/
+# Capacitor paths except android/
 ios/
 .capacitor/
 

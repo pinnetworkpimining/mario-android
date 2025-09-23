@@ -122,9 +122,16 @@ export class Game {
     const scoreElement = document.getElementById('score');
     // Update lives display
     const livesElement = document.getElementById('lives');
-    
+    const dateElement = document.getElementById('game-date');
+
     if (scoreElement) scoreElement.textContent = this.score.toString();
     if (livesElement) livesElement.textContent = this.lives.toString();
+    if (dateElement) {
+      const now = new Date();
+      // Format: YYYY-MM-DD
+      const formatted = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+      dateElement.textContent = formatted;
+    }
   }
 
   private render(): void {
@@ -142,6 +149,13 @@ export class Game {
     // Dynamically import Level2 to avoid circular dependency
     const { Level2 } = require('./Level2');
     this.level = new Level2();
+    this.start();
+  }
+
+  public loadLevel3(): void {
+    // Dynamically import Level3 to avoid circular dependency
+    const { Level3 } = require('./Level3');
+    this.level = new Level3();
     this.start();
   }
 }
