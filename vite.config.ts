@@ -1,4 +1,5 @@
-import { defineConfig } from 'vite'
+import { defineConfig } from 'vite';
+import vue from '@vitejs/plugin-vue';
 
 export default defineConfig({
   base: './',
@@ -11,9 +12,6 @@ export default defineConfig({
     port: 3000,
     host: true
   },
-  test: {
-    globals: true,
-    environment: 'jsdom',
-    setupFiles: ['./src/__tests__/setup.ts']
-  }
-})
+  // test config for Vitest should be in vite.config.ts only if using Vitest plugin, otherwise move to vitest.config.ts
+  plugins: [vue()]
+});
