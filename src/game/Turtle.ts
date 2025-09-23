@@ -22,8 +22,10 @@ export class Turtle {
     // Move horizontally
     this.x += this.velocityX * dt;
 
-    // Keep turtle on screen
-    if (this.x < 0 || this.x + this.width > 800) {
+    // Keep turtle on screen (dynamic width)
+    const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
+    const maxWidth = canvas ? canvas.width / (window.devicePixelRatio || 1) : 1900;
+    if (this.x < 0 || this.x + this.width > maxWidth) {
       this.velocityX *= -1; // Reverse direction
     }
 
@@ -36,13 +38,18 @@ export class Turtle {
   }
 
   public render(ctx: CanvasRenderingContext2D): void {
+    // Scale rendering for mobile devices
+    const scale = Math.min(window.innerWidth / 1900, window.innerHeight / 900);
+    const scaledWidth = this.width * Math.max(scale, 0.8);
+    const scaledHeight = this.height * Math.max(scale, 0.8);
+    
     // Draw turtle with animation
     ctx.fillStyle = this.animationFrame === 0 ? '#008000' : '#006400'; // Alternate green shades
-    ctx.fillRect(this.x, this.y, this.width, this.height);
+    ctx.fillRect(this.x, this.y, scaledWidth, scaledHeight);
 
     // Draw shell
     ctx.fillStyle = '#654321'; // Brown shell
-    ctx.fillRect(this.x + 4, this.y + 8, 24, 16);
+    ctx.fillRect(this.x + 4 * scale, this.y + 8 * scale, 24 * scale, 16 * scale);
   }
 
   public isDefeated(): boolean {

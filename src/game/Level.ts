@@ -15,25 +15,31 @@ export class Level extends BaseLevel {
   }
 
   protected createLevel(): void {
-  // Responsive ground platform (fills canvas width)
-  const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
-  const width = canvas ? canvas.width : 1900;
-  const height = canvas ? canvas.height : 900;
-  // Ground height is 10% of screen height
-  const groundHeight = Math.round(height * 0.10);
-  this.platforms.push({ x: 0, y: height - groundHeight, width: width, height: groundHeight });
+    // Responsive ground platform (fills canvas width)
+    const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
+    const width = canvas ? canvas.width / (window.devicePixelRatio || 1) : 1900;
+    const height = canvas ? canvas.height / (window.devicePixelRatio || 1) : 900;
+    // Ground height is 10% of screen height
+    const groundHeight = Math.round(height * 0.10);
+    this.platforms.push({ x: 0, y: height - groundHeight, width: width, height: groundHeight });
 
-  // Responsive floating platforms (relative positions)
-  this.platforms.push({ x: width * 0.12, y: height * 0.65, width: width * 0.08, height: 20 });
-  this.platforms.push({ x: width * 0.28, y: height * 0.52, width: width * 0.09, height: 20 });
-  this.platforms.push({ x: width * 0.45, y: height * 0.40, width: width * 0.09, height: 20 });
-  this.platforms.push({ x: width * 0.62, y: height * 0.30, width: width * 0.08, height: 20 });
-  this.platforms.push({ x: width * 0.75, y: height * 0.20, width: width * 0.07, height: 20 });
+    // Responsive floating platforms (relative positions) - adjusted for mobile
+    const platformHeight = Math.max(20, height * 0.025); // Minimum 20px or 2.5% of screen height
+    this.platforms.push({ x: width * 0.12, y: height * 0.65, width: width * 0.08, height: platformHeight });
+    this.platforms.push({ x: width * 0.28, y: height * 0.52, width: width * 0.09, height: platformHeight });
+    this.platforms.push({ x: width * 0.45, y: height * 0.40, width: width * 0.09, height: platformHeight });
+    this.platforms.push({ x: width * 0.62, y: height * 0.30, width: width * 0.08, height: platformHeight });
+    this.platforms.push({ x: width * 0.75, y: height * 0.20, width: width * 0.07, height: platformHeight });
   }
 
   protected spawnTurtles(): void {
-    this.turtles.push(new Turtle(300, 518)); // Spawn a turtle on the ground
-    this.turtles.push(new Turtle(500, 518)); // Spawn another turtle
+    const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
+    const width = canvas ? canvas.width / (window.devicePixelRatio || 1) : 1900;
+    const height = canvas ? canvas.height / (window.devicePixelRatio || 1) : 900;
+    const groundY = height - Math.round(height * 0.10) - 32; // 32 = turtle height
+    
+    this.turtles.push(new Turtle(width * 0.2, groundY)); // Spawn a turtle on the ground
+    this.turtles.push(new Turtle(width * 0.4, groundY)); // Spawn another turtle
   }
 
   public update(deltaTime: number): void {

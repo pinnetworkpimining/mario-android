@@ -1,7 +1,8 @@
 import { Player } from './Player';
 import { Level } from './Level';
-
 import { InputManager } from './InputManager';
+import { TouchController } from './TouchController';
+import { MobileUtils } from '../utils/MobileUtils';
 
 export class Game {
   private canvas: HTMLCanvasElement;
@@ -9,45 +10,63 @@ export class Game {
   private player: Player;
   private level: Level;
   private inputManager: InputManager;
+  private touchController: TouchController | null = null;
   private lastTime: number = 0;
   private score: number = 0;
   private lives: number = 3;
   private gameRunning: boolean = false;
+  private isMobile: boolean = false;
 
   constructor(canvas: HTMLCanvasElement) {
-  this.canvas = canvas;
-  this.ctx = canvas.getContext('2d')!;
-  this.inputManager = new InputManager();
-  this.level = new Level();
-  // Place Mario on the ground, centered horizontally
-  const groundY = this.canvas.height - Math.round(this.canvas.height * 0.10);
-  this.player = new Player(this.canvas.width * 0.08, groundY - 32); // 32 = Mario's height
-  this.setupEventListeners();
-  this.inputManager.initializeTouchControls();
+    this.canvas = canvas;
+    this.ctx = canvas.getContext('2d')!;
+    this.inputManager = new InputManager();
+    this.level = new Level();
+    this.isMobile = MobileUtils.isMobile();
+    
+    // Setup mobile optimizations
+    if (this.isMobile) {
+      MobileUtils.setupViewport();
+      MobileUtils.preventZoom();
+      this.setupMobileCanvas();
+      this.touchController = new TouchController(
+        this.canvas,
+        (key: string, pressed: boolean) => this.inputManager.setKeyState(key, pressed)
+      );
+    }
+    
+    // Place Mario on the ground, centered horizontally
+    const groundY = this.canvas.height - Math.round(this.canvas.height * 0.10);
+    this.player = new Player(this.canvas.width * 0.08, groundY - 32); // 32 = Mario's height
+    this.setupEventListeners();
+    
+    if (!this.isMobile) {
+      this.inputManager.initializeTouchControls();
+    }
+  }
+
+  private setupMobileCanvas(): void {
+    const { width, height, devicePixelRatio } = MobileUtils.getScreenDimensions();
+    
+    // Set canvas size to match screen
+    this.canvas.style.width = `${width}px`;
+    this.canvas.style.height = `${height}px`;
+    
+    // Set actual canvas resolution for crisp rendering
+    this.canvas.width = width * devicePixelRatio;
+    this.canvas.height = height * devicePixelRatio;
+    
+    // Scale context to match device pixel ratio
+    this.ctx.scale(devicePixelRatio, devicePixelRatio);
+    
+    // Update canvas style for full screen
+    this.canvas.style.position = 'fixed';
+    this.canvas.style.top = '0';
+    this.canvas.style.left = '0';
+    this.canvas.style.zIndex = '1';
   }
 
   private setupEventListeners(): void {
-    // Touch controls for mobile
-    this.canvas.addEventListener('touchstart', (e) => {
-      e.preventDefault();
-      const touch = e.touches[0];
-      const rect = this.canvas.getBoundingClientRect();
-      const x = touch.clientX - rect.left;
-      
-      // Simple touch controls - left half for left, right half for right
-      if (x < this.canvas.width / 2) {
-        this.inputManager.setKeyState('ArrowLeft', true);
-      } else {
-        this.inputManager.setKeyState('ArrowRight', true);
-      }
-    });
-
-    this.canvas.addEventListener('touchend', (e) => {
-      e.preventDefault();
-      this.inputManager.setKeyState('ArrowLeft', false);
-      this.inputManager.setKeyState('ArrowRight', false);
-    });
-
     // Keyboard controls
     document.addEventListener('keydown', (e) => {
       this.inputManager.setKeyState(e.code, true);
@@ -56,6 +75,22 @@ export class Game {
     document.addEventListener('keyup', (e) => {
       this.inputManager.setKeyState(e.code, false);
     });
+
+    // Handle orientation changes on mobile
+    if (this.isMobile) {
+      window.addEventListener('orientationchange', () => {
+        setTimeout(() => {
+          this.setupMobileCanvas();
+          if (this.touchController) {
+            // Recreate touch controller with new dimensions
+            this.touchController = new TouchController(
+              this.canvas,
+              (key: string, pressed: boolean) => this.inputManager.setKeyState(key, pressed)
+            );
+          }
+        }, 100);
+      });
+    }
   }
 
   public start(): void {
@@ -93,6 +128,9 @@ export class Game {
     // Check if player fell off the level
     if (this.player.y > this.canvas.height) {
       this.playerDie();
+      if (this.isMobile) {
+        MobileUtils.vibrate(200); // Vibrate on death
+      }
     }
 
     // Check collisions with platforms
@@ -101,6 +139,9 @@ export class Game {
 
   private playerDie(): void {
     this.lives--;
+    if (this.isMobile) {
+      MobileUtils.vibrate([100, 50, 100]); // Pattern vibration
+    }
     if (this.lives <= 0) {
       this.gameOver();
     } else {
@@ -143,6 +184,11 @@ export class Game {
     
     // Draw player
     this.player.render(this.ctx);
+    
+    // Draw touch controls on mobile
+    if (this.isMobile && this.touchController) {
+      this.touchController.render(this.ctx);
+    }
   }
 
   public loadLevel2(): void {
