@@ -65,6 +65,12 @@ export class TouchController {
     window.addEventListener('resize', () => {
       this.setupTouchButtons();
     });
+    
+    window.addEventListener('orientationchange', () => {
+      setTimeout(() => {
+        this.setupTouchButtons();
+      }, 100);
+    });
   }
 
   private handleTouchStart(event: TouchEvent): void {

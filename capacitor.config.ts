@@ -5,10 +5,21 @@ const config: CapacitorConfig = {
   appName: 'Mario Game',
   webDir: 'dist',
   server: {
-    androidScheme: 'https'
+    androidScheme: 'https',
+    cleartext: true
   },
   android: {
-    allowMixedContent: true
+    allowMixedContent: true,
+    captureInput: true,
+    webContentsDebuggingEnabled: true
+  },
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 2000,
+      backgroundColor: "#7ecfff",
+      androidSplashResourceName: "splash",
+      showSpinner: false
+    }
   }
 };
 

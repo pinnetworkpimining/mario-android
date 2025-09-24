@@ -3,6 +3,7 @@ import { Level } from './Level';
 import { InputManager } from './InputManager';
 import { TouchController } from './TouchController';
 import { MobileUtils } from '../utils/MobileUtils';
+import { Camera } from './Camera';
 
 export class Game {
   private canvas: HTMLCanvasElement;
@@ -11,6 +12,7 @@ export class Game {
   private level: Level;
   private inputManager: InputManager;
   private touchController: TouchController | null = null;
+  private camera: Camera;
   private lastTime: number = 0;
   private score: number = 0;
   private lives: number = 3;
@@ -22,6 +24,7 @@ export class Game {
     this.ctx = canvas.getContext('2d')!;
     this.inputManager = new InputManager();
     this.level = new Level();
+    this.camera = new Camera(canvas);
     this.isMobile = MobileUtils.isMobile();
     
     // Setup mobile optimizations
@@ -38,6 +41,10 @@ export class Game {
     // Place Mario on the ground, centered horizontally
     const groundY = this.canvas.height - Math.round(this.canvas.height * 0.10);
     this.player = new Player(this.canvas.width * 0.08, groundY - 32); // 32 = Mario's height
+    
+    // Set camera level bounds
+    this.camera.setLevelBounds(this.level.getLevelWidth(), this.level.getLevelHeight());
+    
     this.setupEventListeners();
     
     if (!this.isMobile) {
@@ -81,6 +88,7 @@ export class Game {
       window.addEventListener('orientationchange', () => {
         setTimeout(() => {
           this.setupMobileCanvas();
+          this.camera.setLevelBounds(this.level.getLevelWidth(), this.level.getLevelHeight());
           if (this.touchController) {
             // Recreate touch controller with new dimensions
             this.touchController = new TouchController(
@@ -117,6 +125,9 @@ export class Game {
     // Update level (including enemies)
     this.level.update(deltaTime);
     
+    // Update camera to follow player
+    this.camera.followPlayer(this.player.x, this.player.y);
+    
     // Check collisions
     this.checkCollisions();
     
@@ -126,7 +137,7 @@ export class Game {
 
   private checkCollisions(): void {
     // Check if player fell off the level
-    if (this.player.y > this.canvas.height) {
+    if (this.player.y > this.level.getLevelHeight()) {
       this.playerDie();
       if (this.isMobile) {
         MobileUtils.vibrate(200); // Vibrate on death
@@ -180,11 +191,17 @@ export class Game {
     // Clear canvas
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     
+    // Apply camera transformation
+    this.camera.apply(this.ctx);
+    
     // Draw level
     this.level.render(this.ctx);
     
     // Draw player
     this.player.render(this.ctx);
+    
+    // Restore camera transformation
+    this.camera.restore(this.ctx);
     
     // Draw touch controls on mobile
     if (this.isMobile && this.touchController) {
@@ -194,15 +211,21 @@ export class Game {
 
   public loadLevel2(): void {
     // Dynamically import Level2 to avoid circular dependency
-    const { Level2 } = require('./Level2');
-    this.level = new Level2();
-    this.start();
+    import('./Level2').then(({ Level2 }) => {
+      this.level = new Level2();
+      this.camera.setLevelBounds(this.level.getLevelWidth(), this.level.getLevelHeight());
+      this.player.reset(100, 400);
+      this.start();
+    });
   }
 
   public loadLevel3(): void {
     // Dynamically import Level3 to avoid circular dependency
-    const { Level3 } = require('./Level3');
-    this.level = new Level3();
-    this.start();
+    import('./Level3').then(({ Level3 }) => {
+      this.level = new Level3();
+      this.camera.setLevelBounds(this.level.getLevelWidth(), this.level.getLevelHeight());
+      this.player.reset(100, 400);
+      this.start();
+    });
   }
 }

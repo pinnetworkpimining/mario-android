@@ -41,11 +41,11 @@ export class Player {
 
     // Handle horizontal movement
     this.isMoving = false;
-    if (inputManager.isKeyPressed('ArrowLeft')) {
+    if (inputManager.isKeyPressed('ArrowLeft') || inputManager.isKeyPressed('KeyA')) {
       this.velocityX = -this.speed;
       this.facingRight = false;
       this.isMoving = true;
-    } else if (inputManager.isKeyPressed('ArrowRight')) {
+    } else if (inputManager.isKeyPressed('ArrowRight') || inputManager.isKeyPressed('KeyD')) {
       this.velocityX = this.speed;
       this.facingRight = true;
       this.isMoving = true;
@@ -54,7 +54,7 @@ export class Player {
     }
 
     // Handle jumping
-    if (inputManager.isKeyPressed('Space') && this.onGround) {
+    if ((inputManager.isKeyPressed('Space') || inputManager.isKeyPressed('KeyW')) && this.onGround) {
       this.velocityY = -this.jumpPower;
       this.onGround = false;
       this.jumpAnimationTimer = 300; // Jump animation duration
@@ -67,11 +67,9 @@ export class Player {
     this.x += this.velocityX * dt;
     this.y += this.velocityY * dt;
 
-    // Keep player on screen (dynamic canvas width)
-    const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
-    const maxWidth = canvas ? canvas.width / (window.devicePixelRatio || 1) : 1900;
+    // Keep player within level bounds (but allow movement across the level)
     if (this.x < 0) this.x = 0;
-    if (this.x + this.width > maxWidth) this.x = maxWidth - this.width;
+    // Remove right boundary constraint to allow scrolling
 
     // Update animations
     this.updateAnimations(deltaTime);
