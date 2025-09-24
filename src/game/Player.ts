@@ -125,7 +125,8 @@ export class Player {
   private renderAdvancedCharacter(ctx: CanvasRenderingContext2D, scale: number, scaledWidth: number, scaledHeight: number): void {
     const isJumping = this.jumpAnimationTimer > 0;
     const walkOffset = this.isMoving ? Math.sin(this.animationFrame * Math.PI / 2) * 2 * scale : 0;
-    
+        console.log('scale height', scaledHeight);
+        console.log('scaledWidth', scaledWidth);
     // Body (main torso)
     ctx.fillStyle = '#2E86AB'; // Professional blue
     ctx.fillRect(this.x + 6 * scale, this.y + 12 * scale + walkOffset, 20 * scale, 16 * scale);

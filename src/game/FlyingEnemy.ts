@@ -78,7 +78,7 @@ export class FlyingEnemy {
 
   private renderAdvancedEnemy(ctx: CanvasRenderingContext2D, scale: number, scaledWidth: number, scaledHeight: number): void {
     const wingFlap = Math.sin(this.animationFrame * Math.PI / 2) * 3 * scale;
-    
+    console.log('scale height', scaledHeight);
     // Main body (robotic/alien design)
     ctx.fillStyle = '#8B008B'; // Dark magenta
     ctx.fillRect(this.x + 8 * scale, this.y + 8 * scale, 16 * scale, 16 * scale);
