@@ -1,4 +1,5 @@
 import { InputManager } from './InputManager';
+import { AudioManager } from './AudioManager';
 
 export class Player {
   public x: number;
@@ -22,10 +23,13 @@ export class Player {
   private maxHealth: number = 100;
   private invulnerable: boolean = false;
   private invulnerabilityTimer: number = 0;
+  private audioManager: AudioManager | null = null;
 
   constructor(x: number, y: number) {
     this.x = x;
     this.y = y;
+    // Initialize audio manager
+    this.audioManager = new AudioManager();
   }
 
   public update(deltaTime: number, inputManager: InputManager): void {
@@ -58,6 +62,9 @@ export class Player {
       this.velocityY = -this.jumpPower;
       this.onGround = false;
       this.jumpAnimationTimer = 300; // Jump animation duration
+      if (this.audioManager) {
+        this.audioManager.playSound('jump');
+      }
     }
 
     // Apply gravity

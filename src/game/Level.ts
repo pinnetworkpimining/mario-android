@@ -96,9 +96,10 @@ export class Level extends BaseLevel {
     const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
     const width = canvas ? canvas.width / (window.devicePixelRatio || 1) : 1900;
     const height = canvas ? canvas.height / (window.devicePixelRatio || 1) : 900;
+    const groundY = height - Math.round(height * 0.10);
     
     // Place finish flag at the end of the level
-    this.finishFlag = new FinishFlag(width * 3.7, height * 0.15);
+    this.finishFlag = new FinishFlag(width * 3.7, groundY - 80);
   }
 
   public update(deltaTime: number): void {
@@ -339,41 +340,78 @@ export class Level extends BaseLevel {
     this.gameRunning = false; // Stop the game loop
 
     if (won) {
-      const message = document.createElement('div');
-      message.textContent = 'Level 1 Complete! Loading Level 2...';
-      message.style.position = 'absolute';
-      message.style.top = '50%';
-      message.style.left = '50%';
-      message.style.transform = 'translate(-50%, -50%)';
-      message.style.color = 'white';
-      message.style.fontSize = '24px';
-      message.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-      message.style.padding = '10px';
-      message.style.borderRadius = '5px';
-      message.style.zIndex = '1000';
-      document.body.appendChild(message);
+      this.showLevelCompleteMessage('Level 1 Complete! Loading Level 2...');
 
       setTimeout(() => {
-        document.body.removeChild(message);
-        const game = new Game(document.getElementById('gameCanvas') as HTMLCanvasElement);
-        game.loadLevel2();
+        this.hideMessage();
+        // Dynamically import Level2 to avoid circular dependency
+        import('./Level2').then(({ Level2 }) => {
+          const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
+          const game = new Game(canvas);
+          game.loadLevel2();
+        });
       }, 2000);
     } else {
-      const message = document.createElement('div');
-      message.textContent = 'Game Over! Restarting...';
-      message.style.position = 'absolute';
-      message.style.top = '50%';
-      message.style.left = '50%';
-      message.style.transform = 'translate(-50%, -50%)';
-      message.style.color = 'white';
-      message.style.fontSize = '24px';
-      message.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-      message.style.padding = '10px';
-      message.style.borderRadius = '5px';
-      message.style.zIndex = '1000';
-      document.body.appendChild(message);
+      this.showGameOverMessage();
+      setTimeout(() => {
+        this.hideMessage();
+        window.location.reload();
+      }, 2000);
+    }
+  }
 
-      setTimeout(() => window.location.reload(), 2000);
+  private showLevelCompleteMessage(text: string): void {
+    const message = document.createElement('div');
+    message.id = 'game-message';
+    message.textContent = text;
+    message.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #FFD700;
+      font-size: 4vw;
+      font-weight: bold;
+      text-align: center;
+      background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(0,50,0,0.9));
+      padding: 3vw 6vw;
+      border-radius: 2vw;
+      border: 3px solid #FFD700;
+      z-index: 1000;
+      box-shadow: 0 0 20px rgba(255,215,0,0.5);
+      animation: fadeIn 0.5s ease-in;
+    `;
+    document.body.appendChild(message);
+  }
+
+  private showGameOverMessage(): void {
+    const message = document.createElement('div');
+    message.id = 'game-message';
+    message.textContent = 'Game Over! Restarting...';
+    message.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #FF4444;
+      font-size: 4vw;
+      font-weight: bold;
+      text-align: center;
+      background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(50,0,0,0.9));
+      padding: 3vw 6vw;
+      border-radius: 2vw;
+      border: 3px solid #FF4444;
+      z-index: 1000;
+      box-shadow: 0 0 20px rgba(255,68,68,0.5);
+      animation: fadeIn 0.5s ease-in;
+    `;
+    document.body.appendChild(message);
+  }
+
+  private hideMessage(): void {
+    const message = document.getElementById('game-message');
+    if (message) {
+      document.body.removeChild(message);
     }
   }
 }

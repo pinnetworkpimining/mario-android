@@ -17,41 +17,105 @@ export class Level2 extends Level {
   }
 
   protected createLevel(): void {
-    // Responsive ground platform (fills canvas width)
     const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
-    const width = canvas ? canvas.width : 1900;
-    const height = canvas ? canvas.height : 900;
-    const groundHeight = Math.round(height * 3.1); // Higher ground for better jump
-    this.platforms.push({ x: 0, y: height - groundHeight, width: width, height: groundHeight });
+    const width = canvas ? canvas.width / (window.devicePixelRatio || 1) : 1900;
+    const height = canvas ? canvas.height / (window.devicePixelRatio || 1) : 900;
+    
+    this.levelWidth = width * 5; // Even longer level
+    this.levelHeight = height;
+    
+    // Ground platform spans entire level width
+    const groundHeight = Math.round(height * 0.10);
+    this.platforms.push({ x: 0, y: height - groundHeight, width: this.levelWidth, height: groundHeight });
 
-    // Responsive floating platforms (higher for Mario's jump)
-    this.platforms.push({ x: width * 0.12, y: height * 0.60, width: width * 0.09, height: 24 });
-    this.platforms.push({ x: width * 0.32, y: height * 0.48, width: width * 0.10, height: 24 });
-    this.platforms.push({ x: width * 0.54, y: height * 0.36, width: width * 0.10, height: 24 });
-    this.platforms.push({ x: width * 0.72, y: height * 0.26, width: width * 0.09, height: 24 });
-    this.platforms.push({ x: width * 0.85, y: height * 0.16, width: width * 0.08, height: 24 });
+    // More challenging platforms with proper jump distances
+    const platformHeight = Math.max(20, height * 0.025);
+    
+    // Section 1 - Moderate difficulty
+    this.platforms.push({ x: width * 0.15, y: height * 0.70, width: width * 0.12, height: platformHeight });
+    this.platforms.push({ x: width * 0.35, y: height * 0.55, width: width * 0.10, height: platformHeight });
+    this.platforms.push({ x: width * 0.55, y: height * 0.40, width: width * 0.12, height: platformHeight });
+    
+    // Section 2 - Increased difficulty
+    this.platforms.push({ x: width * 1.2, y: height * 0.65, width: width * 0.08, height: platformHeight });
+    this.platforms.push({ x: width * 1.4, y: height * 0.50, width: width * 0.08, height: platformHeight });
+    this.platforms.push({ x: width * 1.65, y: height * 0.35, width: width * 0.10, height: platformHeight });
+    this.platforms.push({ x: width * 1.9, y: height * 0.20, width: width * 0.08, height: platformHeight });
+    
+    // Section 3 - High difficulty
+    this.platforms.push({ x: width * 2.3, y: height * 0.60, width: width * 0.07, height: platformHeight });
+    this.platforms.push({ x: width * 2.5, y: height * 0.45, width: width * 0.07, height: platformHeight });
+    this.platforms.push({ x: width * 2.7, y: height * 0.30, width: width * 0.08, height: platformHeight });
+    this.platforms.push({ x: width * 2.95, y: height * 0.15, width: width * 0.07, height: platformHeight });
+    
+    // Section 4 - Expert difficulty
+    this.platforms.push({ x: width * 3.3, y: height * 0.55, width: width * 0.06, height: platformHeight });
+    this.platforms.push({ x: width * 3.5, y: height * 0.40, width: width * 0.06, height: platformHeight });
+    this.platforms.push({ x: width * 3.7, y: height * 0.25, width: width * 0.08, height: platformHeight });
+    
+    // Final section leading to flag
+    this.platforms.push({ x: width * 4.1, y: height * 0.50, width: width * 0.15, height: platformHeight });
+    this.platforms.push({ x: width * 4.4, y: height * 0.35, width: width * 0.20, height: platformHeight });
   }
 
   protected spawnEnemies(): void {
     this.spawnTurtles();
 
-    // Place flying enemies above platforms for visibility
     const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
-    const width = canvas ? canvas.width : 1900;
-    const height = canvas ? canvas.height : 900;
-    this.flyingEnemies.push(new FlyingEnemy(width * 0.15, height * 0.55));
-    this.flyingEnemies.push(new FlyingEnemy(width * 0.60, height * 0.32));
+    const width = canvas ? canvas.width / (window.devicePixelRatio || 1) : 1900;
+    const height = canvas ? canvas.height / (window.devicePixelRatio || 1) : 900;
+    
+    // More flying enemies spread across the longer level
+    this.flyingEnemies.push(new FlyingEnemy(width * 0.4, height * 0.65));
+    this.flyingEnemies.push(new FlyingEnemy(width * 0.8, height * 0.45));
+    this.flyingEnemies.push(new FlyingEnemy(width * 1.5, height * 0.40));
+    this.flyingEnemies.push(new FlyingEnemy(width * 2.1, height * 0.50));
+    this.flyingEnemies.push(new FlyingEnemy(width * 2.8, height * 0.25));
+    this.flyingEnemies.push(new FlyingEnemy(width * 3.4, height * 0.45));
+    this.flyingEnemies.push(new FlyingEnemy(width * 4.0, height * 0.30));
   }
 
   protected spawnTurtles(): void {
     const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
-    const width = canvas ? canvas.width : 1900;
-    const height = canvas ? canvas.height : 900;
-    const groundHeight = Math.round(height * 0.13);
+    const width = canvas ? canvas.width / (window.devicePixelRatio || 1) : 1900;
+    const height = canvas ? canvas.height / (window.devicePixelRatio || 1) : 900;
+    const groundHeight = Math.round(height * 0.10);
     const groundY = height - groundHeight;
-    // Place turtles on ground, spaced out
-    this.turtles.push(new Turtle(width * 0.25, groundY - 32));
-    this.turtles.push(new Turtle(width * 0.55, groundY - 32));
+    
+    // More turtles spread across the level
+    this.turtles.push(new Turtle(width * 0.3, groundY - 32));
+    this.turtles.push(new Turtle(width * 0.7, groundY - 32));
+    this.turtles.push(new Turtle(width * 1.3, groundY - 32));
+    this.turtles.push(new Turtle(width * 1.8, groundY - 32));
+    this.turtles.push(new Turtle(width * 2.4, groundY - 32));
+    this.turtles.push(new Turtle(width * 3.1, groundY - 32));
+    this.turtles.push(new Turtle(width * 3.8, groundY - 32));
+    this.turtles.push(new Turtle(width * 4.3, groundY - 32));
+  }
+
+  protected spawnPowerUps(): void {
+    const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
+    const width = canvas ? canvas.width / (window.devicePixelRatio || 1) : 1900;
+    const height = canvas ? canvas.height / (window.devicePixelRatio || 1) : 900;
+    
+    // Place power-ups strategically
+    this.powerUps.push(new PowerUp(width * 0.2, height * 0.65, PowerUpType.HEALTH));
+    this.powerUps.push(new PowerUp(width * 0.6, height * 0.35, PowerUpType.SPEED));
+    this.powerUps.push(new PowerUp(width * 1.45, height * 0.45, PowerUpType.JUMP));
+    this.powerUps.push(new PowerUp(width * 2.0, height * 0.15, PowerUpType.SHIELD));
+    this.powerUps.push(new PowerUp(width * 2.75, height * 0.25, PowerUpType.HEALTH));
+    this.powerUps.push(new PowerUp(width * 3.6, height * 0.20, PowerUpType.SPEED));
+    this.powerUps.push(new PowerUp(width * 4.2, height * 0.45, PowerUpType.HEALTH));
+  }
+
+  protected spawnFinishFlag(): void {
+    const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
+    const width = canvas ? canvas.width / (window.devicePixelRatio || 1) : 1900;
+    const height = canvas ? canvas.height / (window.devicePixelRatio || 1) : 900;
+    const groundY = height - Math.round(height * 0.10);
+    
+    // Place finish flag at the end of the level
+    this.finishFlag = new FinishFlag(width * 4.7, groundY - 80);
   }
 
   public update(deltaTime: number): void {
@@ -148,37 +212,18 @@ export class Level2 extends Level {
 
   public endGame(won: boolean): void {
     if (won) {
-      const message = document.createElement('div');
-      message.textContent = 'Level 2 Complete! Loading Level 3...';
-      message.style.position = 'absolute';
-      message.style.top = '50%';
-      message.style.left = '50%';
-      message.style.transform = 'translate(-50%, -50%)';
-      message.style.color = 'white';
-      message.style.fontSize = '24px';
-      message.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-      message.style.padding = '10px';
-      message.style.borderRadius = '5px';
-      document.body.appendChild(message);
+      this.showLevelCompleteMessage('Level 2 Complete! Loading Level 3...');
 
       setTimeout(() => {
-        const game = new (require('./Game').Game)(document.getElementById('gameCanvas'));
-        game.loadLevel3();
+        this.hideMessage();
+        import('./Level3').then(({ Level3 }) => {
+          const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
+          const game = new Game(canvas);
+          game.loadLevel3();
+        });
       }, 2000);
     } else {
-      const message = document.createElement('div');
-      message.textContent = 'Game Over! Restarting...';
-      message.style.position = 'absolute';
-      message.style.top = '50%';
-      message.style.left = '50%';
-      message.style.transform = 'translate(-50%, -50%)';
-      message.style.color = 'white';
-      message.style.fontSize = '24px';
-      message.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-      message.style.padding = '10px';
-      message.style.borderRadius = '5px';
-      document.body.appendChild(message);
-
+      this.showGameOverMessage();
       setTimeout(() => window.location.reload(), 2000);
     }
   }

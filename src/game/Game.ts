@@ -4,6 +4,7 @@ import { InputManager } from './InputManager';
 import { TouchController } from './TouchController';
 import { MobileUtils } from '../utils/MobileUtils';
 import { Camera } from './Camera';
+import { AudioManager } from './AudioManager';
 
 export class Game {
   private canvas: HTMLCanvasElement;
@@ -13,6 +14,7 @@ export class Game {
   private inputManager: InputManager;
   private touchController: TouchController | null = null;
   private camera: Camera;
+  private audioManager: AudioManager;
   private lastTime: number = 0;
   private score: number = 0;
   private lives: number = 3;
@@ -25,6 +27,7 @@ export class Game {
     this.inputManager = new InputManager();
     this.level = new Level();
     this.camera = new Camera(canvas);
+    this.audioManager = new AudioManager();
     this.isMobile = MobileUtils.isMobile();
     
     // Setup mobile optimizations
@@ -150,6 +153,7 @@ export class Game {
 
   private playerDie(): void {
     this.lives--;
+    this.audioManager.playSound('gameover');
     if (this.isMobile) {
       MobileUtils.vibrate([100, 50, 100]); // Pattern vibration
     }
@@ -162,12 +166,44 @@ export class Game {
 
   private gameOver(): void {
     this.gameRunning = false;
-    alert('Game Over! Final Score: ' + this.score);
-    // Reset game
-    this.score = 0;
-    this.lives = 3;
-    this.player.reset(100, 400);
-    this.start();
+    this.audioManager.playSound('gameover');
+    
+    // Show game over message instead of alert
+    const message = document.createElement('div');
+    message.id = 'game-over-message';
+    message.innerHTML = `
+      <div style="font-size: 4vw; margin-bottom: 2vw;">💀 GAME OVER 💀</div>
+      <div style="font-size: 3vw; margin-bottom: 1vw;">Final Score: ${this.score}</div>
+      <div style="font-size: 2vw;">Restarting in 3 seconds...</div>
+    `;
+    message.style.cssText = `
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      color: #FF4444;
+      font-weight: bold;
+      text-align: center;
+      background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(50,0,0,0.95));
+      padding: 4vw 6vw;
+      border-radius: 2vw;
+      border: 4px solid #FF4444;
+      z-index: 1000;
+      box-shadow: 0 0 30px rgba(255,68,68,0.8);
+      animation: fadeIn 0.5s ease-in;
+    `;
+    document.body.appendChild(message);
+    
+    setTimeout(() => {
+      if (document.getElementById('game-over-message')) {
+        document.body.removeChild(message);
+      }
+      // Reset game
+      this.score = 0;
+      this.lives = 3;
+      this.player.reset(100, 400);
+      this.start();
+    }, 3000);
   }
 
   private updateUI(): void {

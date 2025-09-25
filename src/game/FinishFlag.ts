@@ -2,7 +2,7 @@ export class FinishFlag {
   public x: number;
   public y: number;
   private width: number = 40;
-  private height: number = 120;
+  private height: number = 80;
   private animationTimer: number = 0;
   private flagWave: number = 0;
   private collected: boolean = false;
@@ -28,18 +28,18 @@ export class FinishFlag {
 
     // Flag pole
     ctx.fillStyle = '#8B4513';
-    ctx.fillRect(this.x + scaledWidth * 0.1, this.y, scaledWidth * 0.1, scaledHeight);
+    ctx.fillRect(this.x + scaledWidth * 0.1, this.y, scaledWidth * 0.15, scaledHeight);
 
     // Flag
     ctx.fillStyle = '#FF0000';
     const flagWidth = scaledWidth * 0.7;
-    const flagHeight = scaledHeight * 0.4;
+    const flagHeight = scaledHeight * 0.5;
     
     ctx.beginPath();
-    ctx.moveTo(this.x + scaledWidth * 0.2, this.y + 10);
-    ctx.lineTo(this.x + scaledWidth * 0.2 + flagWidth + this.flagWave, this.y + 10);
-    ctx.lineTo(this.x + scaledWidth * 0.2 + flagWidth + this.flagWave, this.y + 10 + flagHeight);
-    ctx.lineTo(this.x + scaledWidth * 0.2, this.y + 10 + flagHeight);
+    ctx.moveTo(this.x + scaledWidth * 0.25, this.y + 5);
+    ctx.lineTo(this.x + scaledWidth * 0.25 + flagWidth + this.flagWave, this.y + 5);
+    ctx.lineTo(this.x + scaledWidth * 0.25 + flagWidth + this.flagWave, this.y + 5 + flagHeight);
+    ctx.lineTo(this.x + scaledWidth * 0.25, this.y + 5 + flagHeight);
     ctx.closePath();
     ctx.fill();
 
@@ -49,8 +49,8 @@ export class FinishFlag {
       for (let j = 0; j < 2; j++) {
         if ((i + j) % 2 === 0) {
           ctx.fillRect(
-            this.x + scaledWidth * 0.2 + (i * flagWidth / 3) + this.flagWave * 0.5,
-            this.y + 10 + (j * flagHeight / 2),
+            this.x + scaledWidth * 0.25 + (i * flagWidth / 3) + this.flagWave * 0.5,
+            this.y + 5 + (j * flagHeight / 2),
             flagWidth / 3,
             flagHeight / 2
           );
@@ -62,7 +62,7 @@ export class FinishFlag {
     ctx.shadowColor = '#FFD700';
     ctx.shadowBlur = 10 * scale;
     ctx.fillStyle = '#FFD700';
-    ctx.fillRect(this.x + scaledWidth * 0.05, this.y - 5, scaledWidth * 0.2, 10);
+    ctx.fillRect(this.x + scaledWidth * 0.05, this.y - 3, scaledWidth * 0.25, 6);
     ctx.shadowBlur = 0;
 
     ctx.restore();
