@@ -1,6 +1,8 @@
 import { FlyingEnemy } from './FlyingEnemy';
 import { Turtle } from './Turtle';
 import { Level2 } from './Level2';
+import { PowerUp, PowerUpType } from './PowerUp';
+import { FinishFlag } from './FinishFlag';
 
 export class Level3 extends Level2 {
   protected platforms: Array<{ x: number; y: number; width: number; height: number }> = [];

@@ -2,6 +2,11 @@ import { Player } from './Player';
 import { FlyingEnemy } from './FlyingEnemy';
 import { Turtle } from './Turtle';
 import { Level } from './Level';
+import { PowerUp, PowerUpType } from './PowerUp';
+import { FinishFlag } from './FinishFlag';
+import { Game } from './Game';
+
+
 
 export class Level2 extends Level {
   protected platforms: Array<{ x: number; y: number; width: number; height: number }> = []; // Changed from private to protected
@@ -216,7 +221,7 @@ export class Level2 extends Level {
 
       setTimeout(() => {
         this.hideMessage();
-        import('./Level3').then(({ Level3 }) => {
+        import('./Level3').then(({ }) => {
           const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
           const game = new Game(canvas);
           game.loadLevel3();

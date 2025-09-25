@@ -345,7 +345,7 @@ export class Level extends BaseLevel {
       setTimeout(() => {
         this.hideMessage();
         // Dynamically import Level2 to avoid circular dependency
-        import('./Level2').then(({ Level2 }) => {
+        import('./Level2').then(({ }) => {
           const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
           const game = new Game(canvas);
           game.loadLevel2();
@@ -360,7 +360,7 @@ export class Level extends BaseLevel {
     }
   }
 
-  private showLevelCompleteMessage(text: string): void {
+  protected showLevelCompleteMessage(text: string): void {
     const message = document.createElement('div');
     message.id = 'game-message';
     message.textContent = text;
@@ -384,7 +384,7 @@ export class Level extends BaseLevel {
     document.body.appendChild(message);
   }
 
-  private showGameOverMessage(): void {
+  protected showGameOverMessage(): void {
     const message = document.createElement('div');
     message.id = 'game-message';
     message.textContent = 'Game Over! Restarting...';
@@ -408,7 +408,7 @@ export class Level extends BaseLevel {
     document.body.appendChild(message);
   }
 
-  private hideMessage(): void {
+  protected hideMessage(): void {
     const message = document.getElementById('game-message');
     if (message) {
       document.body.removeChild(message);
