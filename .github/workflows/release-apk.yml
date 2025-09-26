@@ -3,6 +3,8 @@ name: Android APK Release
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*.*.*'
 
