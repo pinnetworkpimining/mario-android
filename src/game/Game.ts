@@ -1,8 +1,11 @@
 import { Player } from './Player';
 import { Level } from './Level';
+import { Level2 } from './Level2';
+import { Level3 } from './Level3';
+import { Level4 } from './Level4';
+import { Level5 } from './Level5';
 import { InputManager } from './InputManager';
 import { TouchController } from './TouchController';
-import { MobileUtils } from '../utils/MobileUtils';
 import { Camera } from './Camera';
 import { AudioManager } from './AudioManager';
 
@@ -10,75 +13,86 @@ export class Game {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private player: Player;
-  private level: Level;
+  private level: any;
   private inputManager: InputManager;
-  private touchController: TouchController | null = null;
+  private touchController: TouchController;
   private camera: Camera;
   private audioManager: AudioManager;
   private lastTime: number = 0;
   private score: number = 0;
   private lives: number = 3;
+  private currentLevel: number = 1;
   private gameRunning: boolean = false;
-  private isMobile: boolean = false;
+  private paused: boolean = false;
+  private gameWidth: number;
+  private gameHeight: number;
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d')!;
+    
+    // Set game dimensions for mobile landscape
+    this.gameWidth = window.innerWidth;
+    this.gameHeight = window.innerHeight;
+    
     this.inputManager = new InputManager();
-    this.level = new Level();
     this.camera = new Camera(canvas);
     this.audioManager = new AudioManager();
-    this.isMobile = MobileUtils.isMobile();
     
-    // Setup mobile optimizations
-    if (this.isMobile) {
-      MobileUtils.setupViewport();
-      MobileUtils.preventZoom();
-      this.setupMobileCanvas();
-      this.touchController = new TouchController(
-        this.canvas,
-        (key: string, pressed: boolean) => this.inputManager.setKeyState(key, pressed)
-      );
-    }
+    // Initialize touch controller for mobile
+    this.touchController = new TouchController(
+      this.canvas,
+      (key: string, pressed: boolean) => this.inputManager.setKeyState(key, pressed)
+    );
     
-    // Place Mario on the ground, centered horizontally
-    const groundY = this.canvas.height - Math.round(this.canvas.height * 0.10);
-    this.player = new Player(this.canvas.width * 0.08, groundY - 32); // 32 = Mario's height
-    
-    // Set camera level bounds
-    this.camera.setLevelBounds(this.level.getLevelWidth(), this.level.getLevelHeight());
-    
+    this.loadLevel(1);
     this.setupEventListeners();
-    
-    if (!this.isMobile) {
-      this.inputManager.initializeTouchControls();
-    }
   }
 
-  private setupMobileCanvas(): void {
-    const { width, height, devicePixelRatio } = MobileUtils.getScreenDimensions();
+  private loadLevel(levelNumber: number): void {
+    this.currentLevel = levelNumber;
     
-    // Set canvas size to match screen
-    this.canvas.style.width = `${width}px`;
-    this.canvas.style.height = `${height}px`;
+    // Calculate ground position for mobile landscape
+    const groundY = this.gameHeight * 0.85; // 85% down from top
+    const startX = this.gameWidth * 0.1; // 10% from left edge
     
-    // Set actual canvas resolution for crisp rendering
-    this.canvas.width = width * devicePixelRatio;
-    this.canvas.height = height * devicePixelRatio;
+    switch (levelNumber) {
+      case 1:
+        this.level = new Level();
+        break;
+      case 2:
+        this.level = new Level2();
+        break;
+      case 3:
+        this.level = new Level3();
+        break;
+      case 4:
+        this.level = new Level4();
+        break;
+      case 5:
+        this.level = new Level5();
+        break;
+      default:
+        this.level = new Level();
+    }
     
-    // Scale context to match device pixel ratio
-    this.ctx.scale(devicePixelRatio, devicePixelRatio);
+    // Place player at start position
+    this.player = new Player(startX, groundY - 64); // 64 = player height
     
-    // Update canvas style for full screen
-    this.canvas.style.position = 'fixed';
-    this.canvas.style.top = '0';
-    this.canvas.style.left = '0';
-    this.canvas.style.zIndex = '1';
+    // Set camera bounds
+    this.camera.setLevelBounds(this.level.getLevelWidth(), this.level.getLevelHeight());
+    
+    // Update UI
+    this.updateUI();
   }
 
   private setupEventListeners(): void {
     // Keyboard controls
     document.addEventListener('keydown', (e) => {
+      if (e.code === 'Escape') {
+        this.togglePause();
+        return;
+      }
       this.inputManager.setKeyState(e.code, true);
     });
 
@@ -86,27 +100,63 @@ export class Game {
       this.inputManager.setKeyState(e.code, false);
     });
 
-    // Handle orientation changes on mobile
-    if (this.isMobile) {
-      window.addEventListener('orientationchange', () => {
-        setTimeout(() => {
-          this.setupMobileCanvas();
-          this.camera.setLevelBounds(this.level.getLevelWidth(), this.level.getLevelHeight());
-          if (this.touchController) {
-            // Recreate touch controller with new dimensions
-            this.touchController = new TouchController(
-              this.canvas,
-              (key: string, pressed: boolean) => this.inputManager.setKeyState(key, pressed)
-            );
-          }
-        }, 100);
-      });
-    }
+    // Handle orientation changes
+    window.addEventListener('orientationchange', () => {
+      setTimeout(() => {
+        this.handleResize();
+      }, 100);
+    });
+
+    window.addEventListener('resize', () => {
+      this.handleResize();
+    });
+  }
+
+  private handleResize(): void {
+    this.gameWidth = window.innerWidth;
+    this.gameHeight = window.innerHeight;
+    
+    this.canvas.width = this.gameWidth * window.devicePixelRatio;
+    this.canvas.height = this.gameHeight * window.devicePixelRatio;
+    this.canvas.style.width = this.gameWidth + 'px';
+    this.canvas.style.height = this.gameHeight + 'px';
+    
+    this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    
+    // Recreate touch controller with new dimensions
+    this.touchController = new TouchController(
+      this.canvas,
+      (key: string, pressed: boolean) => this.inputManager.setKeyState(key, pressed)
+    );
   }
 
   public start(): void {
     this.gameRunning = true;
+    this.paused = false;
+    this.audioManager.playBackgroundMusic();
     this.gameLoop(0);
+  }
+
+  public pause(): void {
+    this.paused = true;
+  }
+
+  public resume(): void {
+    this.paused = false;
+  }
+
+  public stop(): void {
+    this.gameRunning = false;
+    this.audioManager.stopBackgroundMusic();
+  }
+
+  public restart(): void {
+    this.loadLevel(this.currentLevel);
+    this.start();
+  }
+
+  private togglePause(): void {
+    this.paused = !this.paused;
   }
 
   private gameLoop(currentTime: number): void {
@@ -115,7 +165,10 @@ export class Game {
     const deltaTime = currentTime - this.lastTime;
     this.lastTime = currentTime;
 
-    this.update(deltaTime);
+    if (!this.paused) {
+      this.update(deltaTime);
+    }
+    
     this.render();
 
     requestAnimationFrame((time) => this.gameLoop(time));
@@ -125,7 +178,7 @@ export class Game {
     // Update player
     this.player.update(deltaTime, this.inputManager);
     
-    // Update level (including enemies)
+    // Update level
     this.level.update(deltaTime);
     
     // Update camera to follow player
@@ -136,96 +189,105 @@ export class Game {
     
     // Update UI
     this.updateUI();
+    
+    // Play ambient sounds occasionally
+    if (Math.random() < 0.001) { // 0.1% chance per frame
+      this.audioManager.playSound('bird');
+    }
   }
 
   private checkCollisions(): void {
     // Check if player fell off the level
     if (this.player.y > this.level.getLevelHeight()) {
       this.playerDie();
-      if (this.isMobile) {
-        MobileUtils.vibrate(200); // Vibrate on death
-      }
     }
 
-    // Check collisions with platforms
+    // Check collisions with level
     this.level.checkCollisions(this.player);
+    
+    // Check level completion
+    if (this.level.isCompleted && this.level.isCompleted()) {
+      this.completeLevel();
+    }
   }
 
   private playerDie(): void {
     this.lives--;
-    this.audioManager.playSound('gameover');
-    if (this.isMobile) {
-      MobileUtils.vibrate([100, 50, 100]); // Pattern vibration
-    }
+    this.audioManager.playSound('hurt');
+    
     if (this.lives <= 0) {
       this.gameOver();
     } else {
-      this.player.reset(100, 400);
+      // Reset player position
+      const groundY = this.gameHeight * 0.85;
+      const startX = this.gameWidth * 0.1;
+      this.player.reset(startX, groundY - 64);
+    }
+  }
+
+  private completeLevel(): void {
+    this.audioManager.playSound('levelcomplete');
+    this.score += 1000;
+    
+    if (this.currentLevel < 5) {
+      this.showMessage(`Level ${this.currentLevel} Complete!`, () => {
+        this.loadLevel(this.currentLevel + 1);
+      });
+    } else {
+      this.showMessage('🎉 GAME COMPLETED! 🎉', () => {
+        this.goToMenu();
+      });
     }
   }
 
   private gameOver(): void {
-    this.gameRunning = false;
     this.audioManager.playSound('gameover');
+    this.audioManager.stopBackgroundMusic();
     
-    // Show game over message instead of alert
+    this.showMessage(`Game Over! Final Score: ${this.score}`, () => {
+      this.goToMenu();
+    });
+  }
+
+  private showMessage(text: string, callback?: () => void): void {
     const message = document.createElement('div');
-    message.id = 'game-over-message';
-    message.innerHTML = `
-      <div style="font-size: 4vw; margin-bottom: 2vw;">💀 GAME OVER 💀</div>
-      <div style="font-size: 3vw; margin-bottom: 1vw;">Final Score: ${this.score}</div>
-      <div style="font-size: 2vw;">Restarting in 3 seconds...</div>
-    `;
-    message.style.cssText = `
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: #FF4444;
-      font-weight: bold;
-      text-align: center;
-      background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(50,0,0,0.95));
-      padding: 4vw 6vw;
-      border-radius: 2vw;
-      border: 4px solid #FF4444;
-      z-index: 1000;
-      box-shadow: 0 0 30px rgba(255,68,68,0.8);
-      animation: fadeIn 0.5s ease-in;
-    `;
+    message.className = 'game-message';
+    message.textContent = text;
     document.body.appendChild(message);
     
     setTimeout(() => {
-      if (document.getElementById('game-over-message')) {
+      if (document.body.contains(message)) {
         document.body.removeChild(message);
       }
-      // Reset game
-      this.score = 0;
-      this.lives = 3;
-      this.player.reset(100, 400);
-      this.start();
+      if (callback) callback();
     }, 3000);
+  }
+
+  private goToMenu(): void {
+    this.stop();
+    (window as any).goToMenu();
   }
 
   private updateUI(): void {
     const scoreElement = document.getElementById('score');
     const livesElement = document.getElementById('lives');
     const healthElement = document.getElementById('health');
-    const dateElement = document.getElementById('game-date');
+    const levelElement = document.getElementById('level');
 
     if (scoreElement) scoreElement.textContent = this.score.toString();
     if (livesElement) livesElement.textContent = this.lives.toString();
     if (healthElement) healthElement.textContent = this.player.getHealth().toString();
-    if (dateElement) {
-      const now = new Date();
-      // Format: YYYY-MM-DD
-      const formatted = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
-      dateElement.textContent = formatted;
-    }
+    if (levelElement) levelElement.textContent = this.currentLevel.toString();
   }
 
   private render(): void {
-    // Clear canvas
-    this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    // Clear canvas with mobile-optimized background
+    const gradient = this.ctx.createLinearGradient(0, 0, 0, this.gameHeight);
+    gradient.addColorStop(0, '#1a1a2e');
+    gradient.addColorStop(0.5, '#16213e');
+    gradient.addColorStop(1, '#0f3460');
+    this.ctx.fillStyle = gradient;
+    this.ctx.fillRect(0, 0, this.gameWidth, this.gameHeight);
     
     // Apply camera transformation
     this.camera.apply(this.ctx);
@@ -239,29 +301,27 @@ export class Game {
     // Restore camera transformation
     this.camera.restore(this.ctx);
     
-    // Draw touch controls on mobile
-    if (this.isMobile && this.touchController) {
-      this.touchController.render(this.ctx);
+    // Draw touch controls
+    this.touchController.render(this.ctx);
+    
+    // Draw pause overlay if paused
+    if (this.paused) {
+      this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      this.ctx.fillRect(0, 0, this.gameWidth, this.gameHeight);
+      
+      this.ctx.fillStyle = 'white';
+      this.ctx.font = `${this.gameHeight * 0.08}px Arial`;
+      this.ctx.textAlign = 'center';
+      this.ctx.fillText('PAUSED', this.gameWidth / 2, this.gameHeight / 2);
     }
   }
 
-  public loadLevel2(): void {
-    // Dynamically import Level2 to avoid circular dependency
-    import('./Level2').then(({ Level2 }) => {
-      this.level = new Level2();
-      this.camera.setLevelBounds(this.level.getLevelWidth(), this.level.getLevelHeight());
-      this.player.reset(100, 400);
-      this.start();
-    });
+  public addScore(points: number): void {
+    this.score += points;
+    this.audioManager.playSound('coin');
   }
 
-  public loadLevel3(): void {
-    // Dynamically import Level3 to avoid circular dependency
-    import('./Level3').then(({ Level3 }) => {
-      this.level = new Level3();
-      this.camera.setLevelBounds(this.level.getLevelWidth(), this.level.getLevelHeight());
-      this.player.reset(100, 400);
-      this.start();
-    });
+  public getAudioManager(): AudioManager {
+    return this.audioManager;
   }
 }

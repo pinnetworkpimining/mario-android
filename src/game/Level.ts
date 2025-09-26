@@ -25,56 +25,58 @@ export class Level extends BaseLevel {
   }
 
   protected createLevel(): void {
-    // Create longer level - 4x wider than screen
-    const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
-    const width = canvas ? canvas.width / (window.devicePixelRatio || 1) : 1900;
-    const height = canvas ? canvas.height / (window.devicePixelRatio || 1) : 900;
+    // Mobile landscape optimized level
+    const width = window.innerWidth;
+    const height = window.innerHeight;
     
-    this.levelWidth = width * 4; // 4 times wider for scrolling
+    this.levelWidth = width * 6; // 6 times wider for mobile scrolling
     this.levelHeight = height;
     
-    // Ground platform spans entire level width
-    const groundHeight = Math.round(height * 0.10);
+    // Ground platform - mobile optimized
+    const groundHeight = Math.round(height * 0.15); // Thicker ground for mobile
     this.platforms.push({ x: 0, y: height - groundHeight, width: this.levelWidth, height: groundHeight });
 
-    // More platforms spread across the longer level
-    const platformHeight = Math.max(20, height * 0.025); // Minimum 20px or 2.5% of screen height
+    // Mobile-friendly platform spacing
+    const platformHeight = Math.max(30, height * 0.04); // Bigger platforms for mobile
+    const jumpDistance = width * 0.15; // Reasonable jump distance
     
-    // First section
-    this.platforms.push({ x: width * 0.12, y: height * 0.65, width: width * 0.08, height: platformHeight });
-    this.platforms.push({ x: width * 0.28, y: height * 0.52, width: width * 0.09, height: platformHeight });
-    this.platforms.push({ x: width * 0.45, y: height * 0.40, width: width * 0.09, height: platformHeight });
+    // First section - easy jumps
+    this.platforms.push({ x: width * 0.2, y: height * 0.7, width: width * 0.12, height: platformHeight });
+    this.platforms.push({ x: width * 0.4, y: height * 0.6, width: width * 0.12, height: platformHeight });
+    this.platforms.push({ x: width * 0.6, y: height * 0.5, width: width * 0.12, height: platformHeight });
     
-    // Second section
-    this.platforms.push({ x: width * 1.2, y: height * 0.60, width: width * 0.10, height: platformHeight });
-    this.platforms.push({ x: width * 1.4, y: height * 0.45, width: width * 0.08, height: platformHeight });
-    this.platforms.push({ x: width * 1.6, y: height * 0.30, width: width * 0.12, height: platformHeight });
+    // Second section - medium difficulty
+    this.platforms.push({ x: width * 1.0, y: height * 0.65, width: width * 0.10, height: platformHeight });
+    this.platforms.push({ x: width * 1.3, y: height * 0.55, width: width * 0.10, height: platformHeight });
+    this.platforms.push({ x: width * 1.6, y: height * 0.45, width: width * 0.10, height: platformHeight });
     
-    // Third section
-    this.platforms.push({ x: width * 2.1, y: height * 0.55, width: width * 0.09, height: platformHeight });
-    this.platforms.push({ x: width * 2.3, y: height * 0.40, width: width * 0.10, height: platformHeight });
-    this.platforms.push({ x: width * 2.5, y: height * 0.25, width: width * 0.08, height: platformHeight });
+    // Third section - getting harder
+    this.platforms.push({ x: width * 2.0, y: height * 0.6, width: width * 0.09, height: platformHeight });
+    this.platforms.push({ x: width * 2.3, y: height * 0.5, width: width * 0.09, height: platformHeight });
+    this.platforms.push({ x: width * 2.6, y: height * 0.4, width: width * 0.09, height: platformHeight });
+    
+    // More sections for longer level
+    this.platforms.push({ x: width * 3.0, y: height * 0.55, width: width * 0.08, height: platformHeight });
+    this.platforms.push({ x: width * 3.3, y: height * 0.45, width: width * 0.08, height: platformHeight });
+    this.platforms.push({ x: width * 3.6, y: height * 0.35, width: width * 0.08, height: platformHeight });
     
     // Final section leading to flag
-    this.platforms.push({ x: width * 3.0, y: height * 0.50, width: width * 0.15, height: platformHeight });
-    this.platforms.push({ x: width * 3.2, y: height * 0.35, width: width * 0.12, height: platformHeight });
-    this.platforms.push({ x: width * 3.5, y: height * 0.20, width: width * 0.20, height: platformHeight });
+    this.platforms.push({ x: width * 4.0, y: height * 0.5, width: width * 0.15, height: platformHeight });
+    this.platforms.push({ x: width * 4.3, y: height * 0.4, width: width * 0.15, height: platformHeight });
+    this.platforms.push({ x: width * 4.8, y: height * 0.3, width: width * 0.20, height: platformHeight });
   }
 
   protected spawnTurtles(): void {
-    const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
-    const width = canvas ? canvas.width / (window.devicePixelRatio || 1) : 1900;
-    const height = canvas ? canvas.height / (window.devicePixelRatio || 1) : 900;
-    const groundY = height - Math.round(height * 0.10) - 32; // 32 = turtle height
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const groundY = height - Math.round(height * 0.15) - 64; // 64 = turtle height for mobile
     
-    // Spread turtles across the longer level
-    this.turtles.push(new Turtle(width * 0.3, groundY));
-    this.turtles.push(new Turtle(width * 0.6, groundY));
-    this.turtles.push(new Turtle(width * 1.3, groundY));
-    this.turtles.push(new Turtle(width * 1.8, groundY));
-    this.turtles.push(new Turtle(width * 2.2, groundY));
-    this.turtles.push(new Turtle(width * 2.8, groundY));
-    this.turtles.push(new Turtle(width * 3.3, groundY));
+    // Fewer but better positioned enemies for mobile
+    this.turtles.push(new Turtle(width * 0.5, groundY));
+    this.turtles.push(new Turtle(width * 1.2, groundY));
+    this.turtles.push(new Turtle(width * 2.1, groundY));
+    this.turtles.push(new Turtle(width * 3.2, groundY));
+    this.turtles.push(new Turtle(width * 4.5, groundY));
   }
 
   protected spawnPowerUps(): void {
@@ -93,13 +95,12 @@ export class Level extends BaseLevel {
   }
 
   protected spawnFinishFlag(): void {
-    const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
-    const width = canvas ? canvas.width / (window.devicePixelRatio || 1) : 1900;
-    const height = canvas ? canvas.height / (window.devicePixelRatio || 1) : 900;
-    const groundY = height - Math.round(height * 0.10);
+    const width = window.innerWidth;
+    const height = window.innerHeight;
+    const groundY = height - Math.round(height * 0.15);
     
-    // Place finish flag at the end of the level
-    this.finishFlag = new FinishFlag(width * 3.7, groundY - 80);
+    // Place finish flag at the end of the level - mobile optimized
+    this.finishFlag = new FinishFlag(width * 5.5, groundY - 60);
   }
 
   public update(deltaTime: number): void {
@@ -123,16 +124,16 @@ export class Level extends BaseLevel {
   }
 
   public render(ctx: CanvasRenderingContext2D): void {
-    // Draw background gradient
-    const gradient = ctx.createLinearGradient(0, 0, 0, ctx.canvas.height);
-    gradient.addColorStop(0, '#87CEEB'); // Sky blue
-    gradient.addColorStop(0.7, '#98FB98'); // Pale green
-    gradient.addColorStop(1, '#228B22'); // Forest green
+    // Cyber-themed background
+    const gradient = ctx.createLinearGradient(0, 0, 0, window.innerHeight);
+    gradient.addColorStop(0, '#1a1a2e');
+    gradient.addColorStop(0.5, '#16213e');
+    gradient.addColorStop(1, '#0f3460');
     ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, this.levelWidth, this.levelHeight);
+    ctx.fillRect(0, 0, this.levelWidth, window.innerHeight);
     
-    // Draw clouds
-    this.renderClouds(ctx);
+    // Draw cyber grid background
+    this.renderCyberGrid(ctx);
     
     // Draw platforms
     this.platforms.forEach((platform, idx) => {
@@ -158,70 +159,70 @@ export class Level extends BaseLevel {
     this.particleSystem.render(ctx);
   }
 
-  private renderClouds(ctx: CanvasRenderingContext2D): void {
-    ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-    const scale = Math.min(window.innerWidth / 1900, window.innerHeight / 900);
+  private renderCyberGrid(ctx: CanvasRenderingContext2D): void {
+    ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
+    ctx.lineWidth = 1;
     
-    // More clouds spread across the longer level
-    this.drawCloud(ctx, 200 * scale, 100 * scale, 60 * scale);
-    this.drawCloud(ctx, 600 * scale, 80 * scale, 80 * scale);
-    this.drawCloud(ctx, 1200 * scale, 120 * scale, 50 * scale);
-    this.drawCloud(ctx, 1800 * scale, 90 * scale, 70 * scale);
-    this.drawCloud(ctx, 2400 * scale, 110 * scale, 55 * scale);
-    this.drawCloud(ctx, 3000 * scale, 85 * scale, 65 * scale);
-    this.drawCloud(ctx, 3600 * scale, 95 * scale, 75 * scale);
-  }
-
-  private drawCloud(ctx: CanvasRenderingContext2D, x: number, y: number, size: number): void {
-    ctx.beginPath();
-    ctx.arc(x, y, size * 0.5, 0, Math.PI * 2);
-    ctx.arc(x + size * 0.3, y, size * 0.7, 0, Math.PI * 2);
-    ctx.arc(x + size * 0.6, y, size * 0.5, 0, Math.PI * 2);
-    ctx.arc(x + size * 0.3, y - size * 0.3, size * 0.4, 0, Math.PI * 2);
-    ctx.fill();
+    // Vertical lines
+    for (let x = 0; x < this.levelWidth; x += 100) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, window.innerHeight);
+      ctx.stroke();
+    }
+    
+    // Horizontal lines
+    for (let y = 0; y < window.innerHeight; y += 100) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(this.levelWidth, y);
+      ctx.stroke();
+    }
   }
 
   private renderGround(ctx: CanvasRenderingContext2D, platform: any): void {
-    // Ground with grass texture
-    const gradient = ctx.createLinearGradient(0, platform.y, 0, ctx.canvas.height);
-    gradient.addColorStop(0, '#32CD32'); // Lime green
-    gradient.addColorStop(0.3, '#228B22'); // Forest green
-    gradient.addColorStop(1, '#8B4513'); // Saddle brown (dirt)
+    // Cyber ground
+    const gradient = ctx.createLinearGradient(0, platform.y, 0, window.innerHeight);
+    gradient.addColorStop(0, '#00ffff');
+    gradient.addColorStop(0.3, '#0066cc');
+    gradient.addColorStop(1, '#1a1a2e');
     
     ctx.fillStyle = gradient;
-    ctx.fillRect(0, platform.y, this.levelWidth, this.levelHeight - platform.y);
+    ctx.fillRect(0, platform.y, this.levelWidth, window.innerHeight - platform.y);
     
-    // Add grass blades
-    ctx.fillStyle = '#00FF00';
+    // Add cyber energy lines
+    ctx.strokeStyle = '#00ffff';
+    ctx.lineWidth = 2;
     for (let i = 0; i < this.levelWidth; i += 20) {
-      const grassHeight = Math.random() * 10 + 5;
-      ctx.fillRect(i, platform.y - grassHeight, 2, grassHeight);
-      ctx.fillRect(i + 5, platform.y - grassHeight * 0.8, 2, grassHeight * 0.8);
-      ctx.fillRect(i + 10, platform.y - grassHeight * 1.2, 2, grassHeight * 1.2);
+      ctx.beginPath();
+      ctx.moveTo(i, platform.y);
+      ctx.lineTo(i, platform.y - 10);
+      ctx.stroke();
     }
   }
 
   private renderPlatform(ctx: CanvasRenderingContext2D, platform: any): void {
-    // Platform with metallic/stone texture
+    // Cyber platform
     const gradient = ctx.createLinearGradient(platform.x, platform.y, platform.x, platform.y + platform.height);
-    gradient.addColorStop(0, '#C0C0C0'); // Silver
-    gradient.addColorStop(0.5, '#808080'); // Gray
-    gradient.addColorStop(1, '#404040'); // Dark gray
+    gradient.addColorStop(0, '#00ffff');
+    gradient.addColorStop(0.5, '#0066cc');
+    gradient.addColorStop(1, '#1a1a2e');
     
     ctx.fillStyle = gradient;
     ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
     
-    // Add border/edge highlight
-    ctx.fillStyle = '#FFFFFF';
-    ctx.fillRect(platform.x, platform.y, platform.width, 2);
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(platform.x, platform.y + platform.height - 2, platform.width, 2);
+    // Glowing edge
+    ctx.strokeStyle = '#00ffff';
+    ctx.lineWidth = 3;
+    ctx.shadowColor = '#00ffff';
+    ctx.shadowBlur = 10;
+    ctx.strokeRect(platform.x, platform.y, platform.width, platform.height);
+    ctx.shadowBlur = 0;
     
-    // Add rivets/details
-    ctx.fillStyle = '#FFD700';
-    for (let i = platform.x + 10; i < platform.x + platform.width - 10; i += 20) {
-      ctx.fillRect(i, platform.y + 4, 4, 4);
-      ctx.fillRect(i, platform.y + platform.height - 8, 4, 4);
+    // Energy nodes
+    ctx.fillStyle = '#ffff00';
+    for (let i = platform.x + 20; i < platform.x + platform.width - 20; i += 40) {
+      ctx.fillRect(i, platform.y + 4, 6, 6);
     }
   }
 

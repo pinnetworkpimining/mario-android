@@ -4,13 +4,13 @@ import { AudioManager } from './AudioManager';
 export class Player {
   public x: number;
   public y: number;
-  private width: number = 32;
-  private height: number = 32;
+  private width: number = 64;
+  private height: number = 64;
   private velocityX: number = 0;
   private velocityY: number = 0;
-  private speed: number = 250;
-  private jumpPower: number = 450;
-  private gravity: number = 800;
+  private speed: number = 400;
+  private jumpPower: number = 600;
+  private gravity: number = 1200;
   private onGround: boolean = false;
   private lives: number = 3;
   private animationFrame: number = 0;
@@ -24,10 +24,14 @@ export class Player {
   private invulnerable: boolean = false;
   private invulnerabilityTimer: number = 0;
   private audioManager: AudioManager | null = null;
+  private gameWidth: number;
+  private gameHeight: number;
 
   constructor(x: number, y: number) {
     this.x = x;
     this.y = y;
+    this.gameWidth = window.innerWidth;
+    this.gameHeight = window.innerHeight;
     // Initialize audio manager
     this.audioManager = new AudioManager();
   }
@@ -74,9 +78,8 @@ export class Player {
     this.x += this.velocityX * dt;
     this.y += this.velocityY * dt;
 
-    // Keep player within level bounds (but allow movement across the level)
+    // Keep player within screen bounds
     if (this.x < 0) this.x = 0;
-    // Remove right boundary constraint to allow scrolling
 
     // Update animations
     this.updateAnimations(deltaTime);
@@ -103,10 +106,9 @@ export class Player {
     }
   }
   public render(ctx: CanvasRenderingContext2D): void {
-    // Scale rendering for mobile devices
-    const scale = Math.min(window.innerWidth / 1900, window.innerHeight / 900);
-    const scaledWidth = this.width * Math.max(scale, 0.8);
-    const scaledHeight = this.height * Math.max(scale, 0.8);
+    // Mobile-optimized rendering
+    const scaledWidth = this.width;
+    const scaledHeight = this.height;
     
     ctx.save();
     
@@ -121,94 +123,103 @@ export class Player {
       ctx.translate(-this.x * 2 - scaledWidth, 0);
     }
     
-    this.renderAdvancedCharacter(ctx, scale, scaledWidth, scaledHeight);
+    this.renderAdvancedCharacter(ctx, scaledWidth, scaledHeight);
     
     ctx.restore();
     
-    // Render health bar
-    this.renderHealthBar(ctx, scale);
+    // Render health bar above player
+    this.renderHealthBar(ctx);
   }
 
-  private renderAdvancedCharacter(ctx: CanvasRenderingContext2D, scale: number, scaledWidth: number, scaledHeight: number): void {
+  private renderAdvancedCharacter(ctx: CanvasRenderingContext2D, scaledWidth: number, scaledHeight: number): void {
     const isJumping = this.jumpAnimationTimer > 0;
-    const walkOffset = this.isMoving ? Math.sin(this.animationFrame * Math.PI / 2) * 2 * scale : 0;
-        console.log('scale height', scaledHeight);
-        console.log('scaledWidth', scaledWidth);
+    const walkOffset = this.isMoving ? Math.sin(this.animationFrame * Math.PI / 2) * 3 : 0;
+    
     // Body (main torso)
-    ctx.fillStyle = '#2E86AB'; // Professional blue
-    ctx.fillRect(this.x + 6 * scale, this.y + 12 * scale + walkOffset, 20 * scale, 16 * scale);
+    ctx.fillStyle = '#00ffff'; // Cyber blue
+    ctx.fillRect(this.x + 12, this.y + 24 + walkOffset, 40, 32);
     
     // Head
-    ctx.fillStyle = '#F24236'; // Professional red
-    ctx.fillRect(this.x + 8 * scale, this.y + 2 * scale, 16 * scale, 12 * scale);
+    ctx.fillStyle = '#ff00ff'; // Cyber magenta
+    ctx.fillRect(this.x + 16, this.y + 4, 32, 24);
     
-    // Helmet/Cap
-    ctx.fillStyle = '#A23B72'; // Dark purple
-    ctx.fillRect(this.x + 6 * scale, this.y, 20 * scale, 6 * scale);
+    // Cyber helmet
+    ctx.fillStyle = '#1a1a2e'; // Dark cyber
+    ctx.fillRect(this.x + 12, this.y, 40, 12);
     
-    // Visor
-    ctx.fillStyle = '#1A1A1A';
-    ctx.fillRect(this.x + 8 * scale, this.y + 4 * scale, 16 * scale, 2 * scale);
+    // Glowing visor
+    ctx.fillStyle = '#00ff00';
+    ctx.shadowColor = '#00ff00';
+    ctx.shadowBlur = 10;
+    ctx.fillRect(this.x + 16, this.y + 8, 32, 4);
+    ctx.shadowBlur = 0;
     
     // Arms
-    ctx.fillStyle = '#2E86AB';
-    const armY = this.y + 14 * scale + walkOffset;
-    ctx.fillRect(this.x + 2 * scale, armY, 6 * scale, 10 * scale); // Left arm
-    ctx.fillRect(this.x + 24 * scale, armY, 6 * scale, 10 * scale); // Right arm
+    ctx.fillStyle = '#00ffff';
+    const armY = this.y + 28 + walkOffset;
+    ctx.fillRect(this.x + 4, armY, 12, 20); // Left arm
+    ctx.fillRect(this.x + 48, armY, 12, 20); // Right arm
     
     // Legs with walking animation
-    ctx.fillStyle = '#1A5490'; // Darker blue for legs
-    const legOffset = this.isMoving && this.onGround ? Math.sin(this.animationFrame * Math.PI) * 3 * scale : 0;
+    ctx.fillStyle = '#0066cc'; // Darker cyber blue
+    const legOffset = this.isMoving && this.onGround ? Math.sin(this.animationFrame * Math.PI) * 6 : 0;
     if (isJumping) {
       // Jumping pose - legs together
-      ctx.fillRect(this.x + 10 * scale, this.y + 28 * scale, 12 * scale, 4 * scale);
+      ctx.fillRect(this.x + 20, this.y + 56, 24, 8);
     } else {
       // Walking/standing legs
-      ctx.fillRect(this.x + 8 * scale + legOffset, this.y + 28 * scale, 6 * scale, 4 * scale);
-      ctx.fillRect(this.x + 18 * scale - legOffset, this.y + 28 * scale, 6 * scale, 4 * scale);
+      ctx.fillRect(this.x + 16 + legOffset, this.y + 56, 12, 8);
+      ctx.fillRect(this.x + 36 - legOffset, this.y + 56, 12, 8);
     }
     
-    // Boots
-    ctx.fillStyle = '#8B4513'; // Brown boots
+    // Cyber boots
+    ctx.fillStyle = '#ff00ff';
     if (isJumping) {
-      ctx.fillRect(this.x + 10 * scale, this.y + 30 * scale, 12 * scale, 2 * scale);
+      ctx.fillRect(this.x + 20, this.y + 60, 24, 4);
     } else {
-      ctx.fillRect(this.x + 8 * scale + legOffset, this.y + 30 * scale, 6 * scale, 2 * scale);
-      ctx.fillRect(this.x + 18 * scale - legOffset, this.y + 30 * scale, 6 * scale, 2 * scale);
+      ctx.fillRect(this.x + 16 + legOffset, this.y + 60, 12, 4);
+      ctx.fillRect(this.x + 36 - legOffset, this.y + 60, 12, 4);
     }
     
-    // Chest emblem
-    ctx.fillStyle = '#FFD700'; // Gold emblem
-    ctx.fillRect(this.x + 12 * scale, this.y + 16 * scale, 8 * scale, 6 * scale);
+    // Glowing chest core
+    ctx.fillStyle = '#ffff00';
+    ctx.shadowColor = '#ffff00';
+    ctx.shadowBlur = 15;
+    ctx.fillRect(this.x + 24, this.y + 32, 16, 12);
+    ctx.shadowBlur = 0;
     
-    // Add energy glow effect
+    // Energy particles around player
     if (this.health > 50) {
-      ctx.shadowColor = '#00FFFF';
-      ctx.shadowBlur = 5 * scale;
-      ctx.fillStyle = '#00FFFF';
-      ctx.fillRect(this.x + 14 * scale, this.y + 18 * scale, 4 * scale, 2 * scale);
+      ctx.fillStyle = '#00ffff';
+      ctx.globalAlpha = 0.7;
+      for (let i = 0; i < 3; i++) {
+        const offsetX = Math.sin(Date.now() * 0.01 + i) * 10;
+        const offsetY = Math.cos(Date.now() * 0.01 + i) * 10;
+        ctx.fillRect(this.x + 32 + offsetX, this.y + 32 + offsetY, 2, 2);
+      }
+      ctx.globalAlpha = 1;
       ctx.shadowBlur = 0;
     }
   }
 
-  private renderHealthBar(ctx: CanvasRenderingContext2D, scale: number): void {
-    const barWidth = 30 * scale;
-    const barHeight = 4 * scale;
-    const barX = this.x - 2 * scale;
-    const barY = this.y - 8 * scale;
+  private renderHealthBar(ctx: CanvasRenderingContext2D): void {
+    const barWidth = 60;
+    const barHeight = 8;
+    const barX = this.x - 4;
+    const barY = this.y - 16;
     
     // Background
-    ctx.fillStyle = '#333333';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
     ctx.fillRect(barX, barY, barWidth, barHeight);
     
     // Health bar
     const healthPercent = this.health / this.maxHealth;
-    ctx.fillStyle = healthPercent > 0.6 ? '#00FF00' : healthPercent > 0.3 ? '#FFFF00' : '#FF0000';
+    ctx.fillStyle = healthPercent > 0.6 ? '#00ff00' : healthPercent > 0.3 ? '#ffff00' : '#ff0000';
     ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
     
     // Border
-    ctx.strokeStyle = '#FFFFFF';
-    ctx.lineWidth = 1;
+    ctx.strokeStyle = '#00ffff';
+    ctx.lineWidth = 2;
     ctx.strokeRect(barX, barY, barWidth, barHeight);
   }
 

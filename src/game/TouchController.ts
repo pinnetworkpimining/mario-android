@@ -21,9 +21,9 @@ export class TouchController {
   }
 
   private setupTouchButtons(): void {
-    const buttonSize = Math.min(window.innerWidth, window.innerHeight) * 0.08; // Smaller buttons
-    const margin = 20;
-    const bottomMargin = 30;
+    const buttonSize = Math.min(window.innerWidth, window.innerHeight) * 0.06; // Even smaller for mobile
+    const margin = 15;
+    const bottomMargin = 20;
 
     this.buttons = [
       {
@@ -37,7 +37,7 @@ export class TouchController {
       },
       {
         id: 'right',
-        x: margin + buttonSize + 15, // Closer spacing
+        x: margin + buttonSize + 10, // Even closer spacing
         y: window.innerHeight - buttonSize - bottomMargin,
         width: buttonSize,
         height: buttonSize,
@@ -153,7 +153,7 @@ export class TouchController {
     
     for (const button of this.buttons) {
       // Button background
-      ctx.fillStyle = button.pressed ? 'rgba(255, 255, 255, 0.9)' : 'rgba(255, 255, 255, 0.7)';
+      ctx.fillStyle = button.pressed ? 'rgba(0, 255, 255, 0.9)' : 'rgba(0, 255, 255, 0.6)';
       ctx.beginPath();
       ctx.arc(
         button.x + button.width / 2,
@@ -165,12 +165,17 @@ export class TouchController {
       ctx.fill();
 
       // Button border
-      ctx.strokeStyle = button.pressed ? 'rgba(0, 0, 0, 0.6)' : 'rgba(0, 0, 0, 0.4)';
-      ctx.lineWidth = 3;
+      ctx.strokeStyle = button.pressed ? '#ff00ff' : '#00ffff';
+      ctx.lineWidth = 2;
+      if (button.pressed) {
+        ctx.shadowColor = '#ff00ff';
+        ctx.shadowBlur = 10;
+      }
       ctx.stroke();
+      ctx.shadowBlur = 0;
 
       // Button icon/text
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+      ctx.fillStyle = button.pressed ? '#ffffff' : '#1a1a2e';
       ctx.font = `bold ${button.width * 0.4}px Arial`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';

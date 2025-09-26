@@ -7,193 +7,277 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-fullscreen">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="theme-color" content="#7ecfff">
-    <title>Mario Game</title>
+    <meta name="theme-color" content="#1a1a2e">
+    <title>Cyber Runner</title>
     <style>
-      body {
+      * {
         margin: 0;
         padding: 0;
-        background: linear-gradient(to bottom, #7ecfff 0%, #b3e6ff 60%, #aee9a7 100%);
-        overflow: hidden;
-        font-family: 'Segoe UI', Arial, sans-serif;
+        box-sizing: border-box;
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+      }
+      
+      html, body {
         width: 100vw;
         height: 100vh;
-        position: relative;
-        touch-action: none;
-      }
-      #gameCanvas {
-        display: block;
-        position: absolute;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        background: transparent;
-        width: 100%;
-        height: 100%;
-        touch-action: none;
+        overflow: hidden;
+        font-family: 'Arial', sans-serif;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        position: fixed;
+        top: 0;
+        left: 0;
       }
       
-      /* Landscape mode optimizations */
-      @media (orientation: landscape) {
-        #gameCanvas {
-          width: 100vw;
-          height: 100vh;
-          object-fit: contain;
+      /* Force landscape orientation */
+      @media (orientation: portrait) {
+        body::before {
+          content: "Please rotate your device to landscape mode";
+          position: fixed;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+          color: white;
+          font-size: 6vw;
+          text-align: center;
+          z-index: 10000;
+          background: rgba(0,0,0,0.9);
+          padding: 5vw;
+          border-radius: 2vw;
         }
         
-        body {
-          overflow: hidden;
+        #gameCanvas, #mainMenu {
+          display: none !important;
         }
       }
       
-      /* Portrait mode adjustments */
-      @media (orientation: portrait) {
-        #gameCanvas {
-          width: 100vw;
-          height: 56.25vw; /* 16:9 aspect ratio */
-          max-height: 100vh;
-        }
+      #gameCanvas {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: transparent;
+        z-index: 1;
       }
       
-      /* Add fade in animation for messages */
+      #mainMenu {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 100;
+        color: white;
+      }
+      
+      .menu-title {
+        font-size: 8vh;
+        font-weight: bold;
+        margin-bottom: 5vh;
+        text-shadow: 0 0 20px #00ffff;
+        background: linear-gradient(45deg, #00ffff, #ff00ff);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        animation: glow 2s ease-in-out infinite alternate;
+      }
+      
+      @keyframes glow {
+        from { text-shadow: 0 0 20px #00ffff; }
+        to { text-shadow: 0 0 30px #ff00ff, 0 0 40px #00ffff; }
+      }
+      
+      .menu-button {
+        background: linear-gradient(135deg, #00ffff 0%, #ff00ff 100%);
+        border: none;
+        color: white;
+        font-size: 4vh;
+        font-weight: bold;
+        padding: 2vh 6vh;
+        margin: 1vh;
+        border-radius: 2vh;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(0,255,255,0.3);
+        min-width: 30vh;
+      }
+      
+      .menu-button:hover, .menu-button:active {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(255,0,255,0.5);
+      }
+      
+      #ui {
+        position: fixed;
+        top: 2vh;
+        left: 2vh;
+        color: #fff;
+        font-size: 3vh;
+        text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
+        background: rgba(0,0,0,0.6);
+        border-radius: 1vh;
+        padding: 1vh 2vh;
+        z-index: 10;
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255,255,255,0.2);
+      }
+      
+      .game-message {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: #fff;
+        font-size: 5vh;
+        font-weight: bold;
+        text-align: center;
+        background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(26,26,46,0.95));
+        padding: 4vh 8vh;
+        border-radius: 2vh;
+        z-index: 1000;
+        box-shadow: 0 0 30px rgba(0,255,255,0.5);
+        border: 2px solid #00ffff;
+        animation: fadeIn 0.5s ease-in;
+      }
+      
       @keyframes fadeIn {
         from { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
         to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
       }
-      #ui {
-        position: absolute;
-        top: 2vw;
-        left: 2vw;
-        color: #fff;
-        font-size: 2.5vw;
-        text-shadow: 2px 2px 8px rgba(0,0,0,0.7);
-        background: rgba(0,0,0,0.25);
-        border-radius: 1vw;
-        padding: 1vw 2vw;
-        z-index: 2;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-      }
-      .touch-controls {
-        display: none; /* Hide default touch controls on mobile - using canvas-based controls */
-      }
       
-      /* Show touch controls only on desktop for backward compatibility */
-      @media (min-width: 1024px) {
-        .touch-controls {
-          display: flex;
-        }
-      }
-      .touch-controls-old {
+      .pause-menu {
         position: fixed;
-        left: 0;
-        bottom: 0;
-        width: 100vw;
-        display: flex;
-        justify-content: center;
-        gap: 7vw;
-        z-index: 10;
-        padding-bottom: 2vw;
-        background: linear-gradient(to top, rgba(200,255,200,0.7) 60%, rgba(255,255,255,0));
-      }
-      .release-btn {
-          position: fixed;
-          left: 50%;
-          bottom: 2vw;
-          transform: translateX(-50%);
-          z-index: 20;
-          background: linear-gradient(145deg, #ffecb3 60%, #ffd54f 100%);
-          color: #333;
-          border: none;
-          border-radius: 2vw;
-          font-size: 2.5vw;
-          font-weight: bold;
-          padding: 1vw 6vw;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.18);
-          cursor: pointer;
-          outline: none;
-          transition: background 0.2s;
-        }
-        .release-btn:active {
-          transform: translateX(-50%) scale(0.95);
-          background: linear-gradient(145deg, #ffd54f 60%, #ffecb3 100%);
-        }
-      .touch-button {
-        width: 11vw;
-        height: 11vw;
-        background: linear-gradient(145deg, #f8f8f8 60%, #e0e0e0 100%);
-        border-radius: 50%;
-        border: 2px solid #b3b3b3;
-        font-size: 5vw;
-        font-weight: bold;
-        color: #222;
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
-        touch-action: manipulation;
-        display: flex;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(0,0,0,0.9);
+        padding: 5vh;
+        border-radius: 2vh;
+        z-index: 1001;
+        display: none;
+        flex-direction: column;
         align-items: center;
-        justify-content: center;
-        transition: background 0.2s;
-      }
-      .touch-button:active {
-        background: linear-gradient(145deg, #e0e0e0 60%, #f8f8f8 100%);
-        transform: scale(0.95);
-      }
-      .touch-button svg {
-        width: 7vw;
-        height: 7vw;
-        fill: #222;
-      }
-      @media (max-width: 900px) {
-        #ui {
-          top: env(safe-area-inset-top, 2vw);
-          left: env(safe-area-inset-left, 2vw);
-          right: env(safe-area-inset-right, 2vw);
-          font-size: 4vw;
-        }
-        .touch-button {
-          width: 18vw;
-          height: 18vw;
-          font-size: 9vw;
-        }
-        .touch-button svg {
-          width: 10vw;
-          height: 10vw;
-        }
+        backdrop-filter: blur(10px);
+        border: 2px solid #00ffff;
       }
       
-      /* Landscape orientation optimizations */
-      @media (orientation: landscape) and (max-height: 500px) {
-        #ui {
-          font-size: 3vw;
-          padding: 0.5vw 1.5vw;
-        }
-        .release-btn {
-          font-size: 2vw;
-          padding: 0.5vw 4vw;
-          bottom: 1vw;
-        }
+      .pause-button {
+        position: fixed;
+        top: 2vh;
+        right: 2vh;
+        background: rgba(0,0,0,0.6);
+        color: white;
+        border: 1px solid rgba(255,255,255,0.2);
+        font-size: 3vh;
+        padding: 1vh 2vh;
+        border-radius: 1vh;
+        cursor: pointer;
+        z-index: 10;
+        backdrop-filter: blur(10px);
       }
     </style>
   </head>
   <body>
-    <div id="ui">
-  <div>Score: <span id="score">0</span></div>
-  <div>Lives: <span id="lives">3</span></div>
-  <div>Health: <span id="health">100</span></div>
-  <div>Date: <span id="game-date"></span></div>
+    <div id="mainMenu">
+      <h1 class="menu-title">CYBER RUNNER</h1>
+      <button class="menu-button" onclick="startGame()">START GAME</button>
+      <button class="menu-button" onclick="showLevels()">SELECT LEVEL</button>
+      <button class="menu-button" onclick="showSettings()">SETTINGS</button>
+      <button class="menu-button" onclick="showCredits()">CREDITS</button>
     </div>
-    <canvas id="gameCanvas" width="1900" height="900"></canvas>
-      <button class="release-btn" onclick="alert('Release action!')">Release</button>
-    <div class="touch-controls touch-controls-old">
-      <button class="touch-button" id="leftButton">
-        <svg viewBox="0 0 24 24"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
-      </button>
-      <button class="touch-button" id="jumpButton">
-        <svg viewBox="0 0 24 24"><path d="M7.41 15.59L12 11l4.59 4.59L18 14l-6-6-6 6z"/></svg>
-      </button>
-      <button class="touch-button" id="rightButton">
-        <svg viewBox="0 0 24 24"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z"/></svg>
-      </button>
+    
+    <div id="ui" style="display: none;">
+      <div>Score: <span id="score">0</span></div>
+      <div>Lives: <span id="lives">3</span></div>
+      <div>Health: <span id="health">100</span></div>
+      <div>Level: <span id="level">1</span></div>
     </div>
+    
+    <button class="pause-button" onclick="togglePause()" style="display: none;">⏸️</button>
+    
+    <div class="pause-menu" id="pauseMenu">
+      <h2 style="color: white; margin-bottom: 3vh;">PAUSED</h2>
+      <button class="menu-button" onclick="togglePause()">RESUME</button>
+      <button class="menu-button" onclick="restartLevel()">RESTART</button>
+      <button class="menu-button" onclick="goToMenu()">MAIN MENU</button>
+    </div>
+    
+    <canvas id="gameCanvas" width="1920" height="1080" style="display: none;"></canvas>
+    
+    <script>
+      let game = null;
+      
+      function startGame() {
+        document.getElementById('mainMenu').style.display = 'none';
+        document.getElementById('gameCanvas').style.display = 'block';
+        document.getElementById('ui').style.display = 'block';
+        document.querySelector('.pause-button').style.display = 'block';
+        
+        if (!game) {
+          import('./src/main.js').then(module => {
+            game = module.initGame();
+          });
+        } else {
+          game.start();
+        }
+      }
+      
+      function showLevels() {
+        alert('Level selection coming soon!');
+      }
+      
+      function showSettings() {
+        alert('Settings coming soon!');
+      }
+      
+      function showCredits() {
+        alert('Made with ❤️ for mobile gaming');
+      }
+      
+      function togglePause() {
+        const pauseMenu = document.getElementById('pauseMenu');
+        if (pauseMenu.style.display === 'flex') {
+          pauseMenu.style.display = 'none';
+          if (game) game.resume();
+        } else {
+          pauseMenu.style.display = 'flex';
+          if (game) game.pause();
+        }
+      }
+      
+      function restartLevel() {
+        togglePause();
+        if (game) game.restart();
+      }
+      
+      function goToMenu() {
+        document.getElementById('mainMenu').style.display = 'flex';
+        document.getElementById('gameCanvas').style.display = 'none';
+        document.getElementById('ui').style.display = 'none';
+        document.querySelector('.pause-button').style.display = 'none';
+        togglePause();
+        if (game) game.stop();
+      }
+      
+      // Prevent context menu and zoom
+      document.addEventListener('contextmenu', e => e.preventDefault());
+      document.addEventListener('touchstart', e => {
+        if (e.touches.length > 1) e.preventDefault();
+      }, { passive: false });
+      
+      // Lock orientation to landscape
+      if (screen.orientation && screen.orientation.lock) {
+        screen.orientation.lock('landscape').catch(() => {});
+      }
+    </script>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>
