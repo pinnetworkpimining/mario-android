@@ -12,7 +12,7 @@ import { AudioManager } from './AudioManager';
 export class Game {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
-  private player: Player;
+  private player: Player = new Player(100, 100);
   private level: any;
   private inputManager: InputManager;
   private touchController: TouchController;
@@ -49,7 +49,7 @@ export class Game {
     this.setupEventListeners();
   }
 
-  private loadLevel(levelNumber: number): void {
+  public loadLevel(levelNumber: number): void {
     this.currentLevel = levelNumber;
     
     // Calculate ground position for mobile landscape

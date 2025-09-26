@@ -349,7 +349,7 @@ export class Level extends BaseLevel {
         import('./Level2').then(({ }) => {
           const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
           const game = new Game(canvas);
-          game.loadLevel2();
+          game.loadLevel(2);
         });
       }, 2000);
     } else {

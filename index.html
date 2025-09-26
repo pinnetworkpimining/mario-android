@@ -222,7 +222,7 @@
         document.querySelector('.pause-button').style.display = 'block';
         
         if (!game) {
-          import('./src/main.js').then(module => {
+          import('./src/main.ts').then(module => {
             game = module.initGame();
           });
         } else {

@@ -224,7 +224,7 @@ export class Level2 extends Level {
         import('./Level3').then(({ }) => {
           const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
           const game = new Game(canvas);
-          game.loadLevel3();
+          game.loadLevel(3);
         });
       }, 2000);
     } else {
