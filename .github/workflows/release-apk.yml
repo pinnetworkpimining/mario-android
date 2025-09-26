@@ -58,7 +58,7 @@ jobs:
         run: npm run build
 
       - name: Copy web assets to Android (Capacitor)
-        run: npx cap copy android
+        run: npx cap sync android
 
       - name: Build Release APK (assembleRelease)
         run: |
