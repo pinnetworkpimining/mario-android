@@ -8,7 +8,8 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Export function to initialize game from HTML
-(window as any).initGame = () => {
+export function initGame() {
+
   const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
   if (canvas) {
     // Set canvas to exact screen dimensions for mobile
