@@ -139,7 +139,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: build-$(date +'%Y%m%d-%H%M')
+          tag_name: latest
           name: "Release $(date +'%Y-%m-%d %H:%M')"
           files: ./apk/*.apk
         env:
