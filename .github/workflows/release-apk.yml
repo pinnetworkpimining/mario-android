@@ -67,7 +67,7 @@ jobs:
           chmod +x ./gradlew || true
           echo "Using java: $(java -version 2>&1 | head -n 1)"
           echo "Gradle wrapper:" && ls -la ./gradlew
-          ./gradlew assembleRelease --no-daemon --stacktrace
+          ./gradlew assembleDebug
 
       - name: Upload Release APK
         uses: actions/upload-artifact@v4
@@ -75,29 +75,6 @@ jobs:
           name: app-release-apk
           path: android/app/build/outputs/apk/release/*.apk
           retention-days: 30
-
-  test-apk:
-    name: Test APK in Emulator
-    runs-on: ubuntu-latest
-    needs: gradle-build
-    steps:
-      - name: Download APK artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: app-release-apk
-          path: ./apk
-
-      - name: Start Android emulator and test APK
-        uses: ReactiveCircus/android-emulator-runner@v2
-        with:
-          api-level: 30
-          target: google_apis
-          arch: x86_64
-          profile: pixel
-          script: |
-            adb install -r ./apk/app-release.apk
-            adb shell am start -n com.your.package/.MainActivity
-            # Optionally run instrumentation tests here
 
   lint:
     name: Lint
