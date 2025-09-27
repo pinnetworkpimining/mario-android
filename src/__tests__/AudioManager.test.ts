@@ -24,7 +24,7 @@ const mockAudioContext = {
 }
 
 global.AudioContext = vi.fn(() => mockAudioContext) as any
-global.webkitAudioContext = vi.fn(() => mockAudioContext) as any
+(global as any).webkitAudioContext = vi.fn(() => mockAudioContext) as any
 
 describe('AudioManager', () => {
   let audioManager: AudioManager
