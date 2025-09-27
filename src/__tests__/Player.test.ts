@@ -81,8 +81,8 @@ describe('Player', () => {
     const bounds = player.getBounds()
     expect(bounds.x).toBe(player.x)
     expect(bounds.y).toBe(player.y)
-    expect(bounds.width).toBe(32)
-    expect(bounds.height).toBe(32)
+    expect(bounds.width).toBe(64)
+    expect(bounds.height).toBe(64)
   })
 
   it('should set position correctly', () => {

@@ -88,8 +88,7 @@ export class Turtle {
 
   private renderNormalTurtle(ctx: CanvasRenderingContext2D, scale: number, scaledWidth: number, scaledHeight: number): void {
     const walkOffset = Math.sin(this.animationFrame * Math.PI / 2) * 2 * scale;
-        console.log('scale height', scaledHeight);
-        console.log('scaledWidth', scaledWidth);
+
     // Main body
     ctx.fillStyle = '#228B22'; // Forest green
     ctx.fillRect(this.x + 4 * scale, this.y + 8 * scale + walkOffset, 24 * scale, 16 * scale);
@@ -133,8 +132,7 @@ export class Turtle {
     // Shell only (turtle hiding)
     ctx.fillStyle = '#8B4513';
     ctx.fillRect(this.x + 2 * scale, this.y + 8 * scale, 28 * scale, 16 * scale);
-        console.log('scale height', scaledHeight);
-    console.log('scaledWidth', scaledWidth);
+
     // Shell pattern
     ctx.fillStyle = '#A0522D';
     for (let i = 0; i < 3; i++) {
