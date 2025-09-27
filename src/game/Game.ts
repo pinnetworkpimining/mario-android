@@ -9,6 +9,35 @@ import { TouchController } from './TouchController';
 import { Camera } from './Camera';
 import { AudioManager } from './AudioManager';
 
+// Game state logging utility
+class GameLogger {
+  private static instance: GameLogger;
+  private logs: string[] = [];
+
+  static getInstance(): GameLogger {
+    if (!GameLogger.instance) {
+      GameLogger.instance = new GameLogger();
+    }
+    return GameLogger.instance;
+  }
+
+  log(message: string, level: 'INFO' | 'WARN' | 'ERROR' = 'INFO'): void {
+    const timestamp = new Date().toISOString();
+    const logMessage = `[${timestamp}] ${level}: ${message}`;
+    this.logs.push(logMessage);
+    console.log(logMessage);
+    
+    // Keep only last 100 logs
+    if (this.logs.length > 100) {
+      this.logs.shift();
+    }
+  }
+
+  getLogs(): string[] {
+    return [...this.logs];
+  }
+}
+
 export class Game {
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
@@ -26,14 +55,22 @@ export class Game {
   private paused: boolean = false;
   private gameWidth: number;
   private gameHeight: number;
+  private logger: GameLogger;
+  private gameOverShown: boolean = false;
+  private levelCompleteShown: boolean = false;
 
   constructor(canvas: HTMLCanvasElement) {
+    this.logger = GameLogger.getInstance();
+    this.logger.log('Game constructor called');
+    
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d')!;
     
     // Set game dimensions for mobile landscape
     this.gameWidth = window.innerWidth;
     this.gameHeight = window.innerHeight;
+    
+    this.logger.log(`Game dimensions: ${this.gameWidth}x${this.gameHeight}`);
     
     this.inputManager = new InputManager();
     this.camera = new Camera(canvas);
@@ -47,9 +84,17 @@ export class Game {
     
     this.loadLevel(1);
     this.setupEventListeners();
+    
+    this.logger.log('Game initialization complete');
   }
 
   public loadLevel(levelNumber: number): void {
+    this.logger.log(`Loading level ${levelNumber}`);
+    
+    // Reset game state flags
+    this.gameOverShown = false;
+    this.levelCompleteShown = false;
+    
     this.currentLevel = levelNumber;
     
     // Calculate ground position for mobile landscape
@@ -59,21 +104,31 @@ export class Game {
     switch (levelNumber) {
       case 1:
         this.level = new Level();
+        this.logger.log('Level 1 loaded');
         break;
       case 2:
         this.level = new Level2();
+        this.logger.log('Level 2 loaded');
         break;
       case 3:
         this.level = new Level3();
+        this.logger.log('Level 3 loaded');
         break;
       case 4:
         this.level = new Level4();
+        this.logger.log('Level 4 loaded');
         break;
       case 5:
         this.level = new Level5();
+        this.logger.log('Level 5 loaded');
+        break;
+      case 6:
+        this.level = new Level6();
+        this.logger.log('Level 6 (Interactive Enemies) loaded');
         break;
       default:
         this.level = new Level();
+        this.logger.log('Default level loaded');
     }
     
     // Place player at start position
@@ -84,9 +139,13 @@ export class Game {
     
     // Update UI
     this.updateUI();
+    
+    this.logger.log(`Level ${levelNumber} setup complete`);
   }
 
   private setupEventListeners(): void {
+    this.logger.log('Setting up event listeners');
+    
     // Keyboard controls
     document.addEventListener('keydown', (e) => {
       if (e.code === 'Escape') {
@@ -113,6 +172,8 @@ export class Game {
   }
 
   private handleResize(): void {
+    this.logger.log('Handling resize event');
+    
     this.gameWidth = window.innerWidth;
     this.gameHeight = window.innerHeight;
     
@@ -131,6 +192,7 @@ export class Game {
   }
 
   public start(): void {
+    this.logger.log('Starting game');
     this.gameRunning = true;
     this.paused = false;
     this.audioManager.playBackgroundMusic();
@@ -138,25 +200,30 @@ export class Game {
   }
 
   public pause(): void {
+    this.logger.log('Game paused');
     this.paused = true;
   }
 
   public resume(): void {
+    this.logger.log('Game resumed');
     this.paused = false;
   }
 
   public stop(): void {
+    this.logger.log('Game stopped');
     this.gameRunning = false;
     this.audioManager.stopBackgroundMusic();
   }
 
   public restart(): void {
+    this.logger.log('Restarting game');
     this.loadLevel(this.currentLevel);
     this.start();
   }
 
   private togglePause(): void {
     this.paused = !this.paused;
+    this.logger.log(`Game ${this.paused ? 'paused' : 'unpaused'}`);
   }
 
   private gameLoop(currentTime: number): void {
@@ -199,6 +266,7 @@ export class Game {
   private checkCollisions(): void {
     // Check if player fell off the level
     if (this.player.y > this.level.getLevelHeight()) {
+      this.logger.log('Player fell off level');
       this.playerDie();
     }
 
@@ -206,12 +274,16 @@ export class Game {
     this.level.checkCollisions(this.player);
     
     // Check level completion
-    if (this.level.isCompleted && this.level.isCompleted()) {
+    if (this.level.isCompleted && this.level.isCompleted() && !this.levelCompleteShown) {
+      this.logger.log(`Level ${this.currentLevel} completed`);
       this.completeLevel();
     }
   }
 
   private playerDie(): void {
+    if (this.gameOverShown) return; // Prevent multiple calls
+    
+    this.logger.log('Player died');
     this.lives--;
     this.audioManager.playSound('hurt');
     
@@ -222,18 +294,25 @@ export class Game {
       const groundY = this.gameHeight * 0.85;
       const startX = this.gameWidth * 0.1;
       this.player.reset(startX, groundY - 64);
+      this.logger.log('Player respawned');
     }
   }
 
   private completeLevel(): void {
+    if (this.levelCompleteShown) return; // Prevent multiple calls
+    this.levelCompleteShown = true;
+    
+    this.logger.log(`Level ${this.currentLevel} complete`);
     this.audioManager.playSound('levelcomplete');
     this.score += 1000;
     
-    if (this.currentLevel < 5) {
+    if (this.currentLevel < 6) {
       this.showMessage(`Level ${this.currentLevel} Complete!`, () => {
+        this.logger.log(`Transitioning to level ${this.currentLevel + 1}`);
         this.loadLevel(this.currentLevel + 1);
       });
     } else {
+      this.logger.log('All levels completed - Game won!');
       this.showMessage('🎉 GAME COMPLETED! 🎉', () => {
         this.goToMenu();
       });
@@ -241,6 +320,10 @@ export class Game {
   }
 
   private gameOver(): void {
+    if (this.gameOverShown) return; // Prevent multiple calls
+    this.gameOverShown = true;
+    
+    this.logger.log('Game over');
     this.audioManager.playSound('gameover');
     this.audioManager.stopBackgroundMusic();
     
@@ -250,6 +333,8 @@ export class Game {
   }
 
   private showMessage(text: string, callback?: () => void): void {
+    this.logger.log(`Showing message: ${text}`);
+    
     const message = document.createElement('div');
     message.className = 'game-message';
     message.textContent = text;
@@ -264,6 +349,7 @@ export class Game {
   }
 
   private goToMenu(): void {
+    this.logger.log('Returning to main menu');
     this.stop();
     (window as any).goToMenu();
   }
@@ -317,11 +403,29 @@ export class Game {
   }
 
   public addScore(points: number): void {
+    this.logger.log(`Score added: ${points}`);
     this.score += points;
     this.audioManager.playSound('coin');
   }
 
   public getAudioManager(): AudioManager {
     return this.audioManager;
+  }
+
+  // Debug methods for developers
+  public getGameState(): any {
+    return {
+      currentLevel: this.currentLevel,
+      score: this.score,
+      lives: this.lives,
+      gameRunning: this.gameRunning,
+      paused: this.paused,
+      playerPosition: { x: this.player.x, y: this.player.y },
+      playerHealth: this.player.getHealth()
+    };
+  }
+
+  public getLogs(): string[] {
+    return this.logger.getLogs();
   }
 }
