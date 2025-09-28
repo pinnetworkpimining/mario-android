@@ -12,13 +12,8 @@ const mockMainMenu = {
 }
 
 describe('Level Select Menu', () => {
-  beforeEach(() => {
-    global.document.getElementById = vi.fn((id) => {
-      if (id === 'levelSelectMenu') return mockLevelSelectMenu
-      if (id === 'mainMenu') return mockMainMenu
-      return null
-    })
-  })
+
+
 
   it('should show level select menu when called', () => {
     // Simulate showLevelSelect function
