@@ -135,33 +135,34 @@ export class Player {
     const isJumping = this.jumpAnimationTimer > 0;
     const walkOffset = this.isMoving ? Math.sin(this.animationFrame * Math.PI / 2) * 3 : 0;
     
+    // Make character more colorful and appealing
     // Body (main torso)
-    ctx.fillStyle = '#00ffff'; // Cyber blue
+    ctx.fillStyle = '#4169E1'; // Royal blue - more appealing
     ctx.fillRect(this.x + 12, this.y + 24 + walkOffset, 40, 32);
     
     // Head
-    ctx.fillStyle = '#ff00ff'; // Cyber magenta
+    ctx.fillStyle = '#FFD700'; // Gold - more attractive
     ctx.fillRect(this.x + 16, this.y + 4, 32, 24);
     
-    // Cyber helmet
-    ctx.fillStyle = '#1a1a2e'; // Dark cyber
+    // Hero helmet
+    ctx.fillStyle = '#8B0000'; // Dark red - heroic
     ctx.fillRect(this.x + 12, this.y, 40, 12);
     
-    // Glowing visor
-    ctx.fillStyle = '#00ff00';
-    ctx.shadowColor = '#00ff00';
+    // Hero visor
+    ctx.fillStyle = '#00BFFF'; // Deep sky blue
+    ctx.shadowColor = '#00BFFF';
     ctx.shadowBlur = 10;
     ctx.fillRect(this.x + 16, this.y + 8, 32, 4);
     ctx.shadowBlur = 0;
     
     // Arms
-    ctx.fillStyle = '#00ffff';
+    ctx.fillStyle = '#32CD32'; // Lime green - friendly
     const armY = this.y + 28 + walkOffset;
     ctx.fillRect(this.x + 4, armY, 12, 20); // Left arm
     ctx.fillRect(this.x + 48, armY, 12, 20); // Right arm
     
     // Legs with walking animation
-    ctx.fillStyle = '#0066cc'; // Darker cyber blue
+    ctx.fillStyle = '#FF6347'; // Tomato red - vibrant
     const legOffset = this.isMoving && this.onGround ? Math.sin(this.animationFrame * Math.PI) * 6 : 0;
     if (isJumping) {
       // Jumping pose - legs together
@@ -172,8 +173,8 @@ export class Player {
       ctx.fillRect(this.x + 36 - legOffset, this.y + 56, 12, 8);
     }
     
-    // Cyber boots
-    ctx.fillStyle = '#ff00ff';
+    // Hero boots
+    ctx.fillStyle = '#8A2BE2'; // Blue violet
     if (isJumping) {
       ctx.fillRect(this.x + 20, this.y + 60, 24, 4);
     } else {
@@ -181,16 +182,16 @@ export class Player {
       ctx.fillRect(this.x + 36 - legOffset, this.y + 60, 12, 4);
     }
     
-    // Glowing chest core
-    ctx.fillStyle = '#ffff00';
-    ctx.shadowColor = '#ffff00';
+    // Hero emblem
+    ctx.fillStyle = '#FF1493'; // Deep pink - eye-catching
+    ctx.shadowColor = '#FF1493';
     ctx.shadowBlur = 15;
     ctx.fillRect(this.x + 24, this.y + 32, 16, 12);
     ctx.shadowBlur = 0;
     
-    // Energy particles around player
+    // Magic sparkles around player
     if (this.health > 50) {
-      ctx.fillStyle = '#00ffff';
+      ctx.fillStyle = '#FFD700'; // Gold sparkles
       ctx.globalAlpha = 0.7;
       for (let i = 0; i < 3; i++) {
         const offsetX = Math.sin(Date.now() * 0.01 + i) * 10;
@@ -214,11 +215,11 @@ export class Player {
     
     // Health bar
     const healthPercent = this.health / this.maxHealth;
-    ctx.fillStyle = healthPercent > 0.6 ? '#00ff00' : healthPercent > 0.3 ? '#ffff00' : '#ff0000';
+    ctx.fillStyle = healthPercent > 0.6 ? '#32CD32' : healthPercent > 0.3 ? '#FFD700' : '#FF4500';
     ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
     
     // Border
-    ctx.strokeStyle = '#00ffff';
+    ctx.strokeStyle = '#4169E1';
     ctx.lineWidth = 2;
     ctx.strokeRect(barX, barY, barWidth, barHeight);
   }

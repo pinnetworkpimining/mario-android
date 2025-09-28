@@ -90,11 +90,16 @@ describe('Game', () => {
   })
 
   it('should load different levels', () => {
-    game.loadLevel(2)
-    expect(game.getGameState().currentLevel).toBe(2)
+    // Wait for transition to complete
+    setTimeout(() => {
+      game.loadLevel(2)
+      expect(game.getGameState().currentLevel).toBe(2)
+    }, 100)
     
-    game.loadLevel(3)
-    expect(game.getGameState().currentLevel).toBe(3)
+    setTimeout(() => {
+      game.loadLevel(3)
+      expect(game.getGameState().currentLevel).toBe(3)
+    }, 200)
   })
 
   it('should add score correctly', () => {

@@ -21,8 +21,14 @@ export function initGame() {
     canvas.style.width = width + 'px';
     canvas.style.height = height + 'px';
     
+    // Scale context for high DPI displays
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }
+    
     gameInstance = new Game(canvas);
-    gameInstance.start();
+    // Don't auto-start, let the caller decide
     return gameInstance;
   }
   return null;

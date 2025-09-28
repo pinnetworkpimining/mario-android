@@ -2,7 +2,7 @@ import { CapacitorConfig } from '@capacitor/core';
 
 const config: CapacitorConfig = {
   appId: 'com.mariogame.app',
-  appName: 'Mario Game',
+  appName: 'Cyber Runner',
   webDir: 'dist',
   server: {
     androidScheme: 'https',
@@ -16,7 +16,7 @@ const config: CapacitorConfig = {
   plugins: {
     SplashScreen: {
       launchShowDuration: 2000,
-      backgroundColor: "#7ecfff",
+      backgroundColor: "#1a1a2e",
       androidSplashResourceName: "splash",
       showSpinner: false
     }

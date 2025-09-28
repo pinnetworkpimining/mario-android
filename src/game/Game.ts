@@ -60,6 +60,7 @@ export class Game {
   private logger: GameLogger;
   private gameOverShown: boolean = false;
   private levelCompleteShown: boolean = false;
+  private isTransitioning: boolean = false;
 
   constructor(canvas: HTMLCanvasElement) {
     this.logger = GameLogger.getInstance();
@@ -93,9 +94,16 @@ export class Game {
   public loadLevel(levelNumber: number): void {
     this.logger.log(`Loading level ${levelNumber}`);
     
+    // Prevent multiple level loads
+    if (this.isTransitioning) {
+      this.logger.log('Level transition already in progress, ignoring request');
+      return;
+    }
+    
     // Reset game state flags
     this.gameOverShown = false;
     this.levelCompleteShown = false;
+    this.isTransitioning = true;
     
     this.currentLevel = levelNumber;
     
@@ -142,6 +150,7 @@ export class Game {
     // Update UI
     this.updateUI();
     
+    this.isTransitioning = false;
     this.logger.log(`Level ${levelNumber} setup complete`);
   }
 
@@ -311,7 +320,10 @@ export class Game {
     if (this.currentLevel < 6) {
       this.showMessage(`Level ${this.currentLevel} Complete!`, () => {
         this.logger.log(`Transitioning to level ${this.currentLevel + 1}`);
-        this.loadLevel(this.currentLevel + 1);
+        setTimeout(() => {
+          this.loadLevel(this.currentLevel + 1);
+          this.start(); // Ensure game starts after level load
+        }, 500);
       });
     } else {
       this.logger.log('All levels completed - Game won!');

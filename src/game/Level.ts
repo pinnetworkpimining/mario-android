@@ -29,7 +29,7 @@ export class Level extends BaseLevel {
     const width = window.innerWidth;
     const height = window.innerHeight;
     
-    this.levelWidth = width * 6; // 6 times wider for mobile scrolling
+    this.levelWidth = width * 4; // Shorter for better pacing
     this.levelHeight = height;
     
     // Ground platform - mobile optimized
@@ -41,29 +41,21 @@ export class Level extends BaseLevel {
     const jumpDistance = width * 0.15; // Reasonable jump distance
     
     // First section - easy jumps
-    this.platforms.push({ x: width * 0.2, y: height * 0.7, width: width * 0.12, height: platformHeight });
-    this.platforms.push({ x: width * 0.4, y: height * 0.6, width: width * 0.12, height: platformHeight });
-    this.platforms.push({ x: width * 0.6, y: height * 0.5, width: width * 0.12, height: platformHeight });
+    this.platforms.push({ x: width * 0.3, y: height * 0.7, width: width * 0.15, height: platformHeight });
+    this.platforms.push({ x: width * 0.6, y: height * 0.6, width: width * 0.15, height: platformHeight });
+    this.platforms.push({ x: width * 0.9, y: height * 0.5, width: width * 0.15, height: platformHeight });
     
     // Second section - medium difficulty
-    this.platforms.push({ x: width * 1.0, y: height * 0.65, width: width * 0.10, height: platformHeight });
-    this.platforms.push({ x: width * 1.3, y: height * 0.55, width: width * 0.10, height: platformHeight });
-    this.platforms.push({ x: width * 1.6, y: height * 0.45, width: width * 0.10, height: platformHeight });
+    this.platforms.push({ x: width * 1.3, y: height * 0.65, width: width * 0.12, height: platformHeight });
+    this.platforms.push({ x: width * 1.6, y: height * 0.55, width: width * 0.12, height: platformHeight });
+    this.platforms.push({ x: width * 1.9, y: height * 0.45, width: width * 0.12, height: platformHeight });
     
     // Third section - getting harder
-    this.platforms.push({ x: width * 2.0, y: height * 0.6, width: width * 0.09, height: platformHeight });
-    this.platforms.push({ x: width * 2.3, y: height * 0.5, width: width * 0.09, height: platformHeight });
-    this.platforms.push({ x: width * 2.6, y: height * 0.4, width: width * 0.09, height: platformHeight });
+    this.platforms.push({ x: width * 2.3, y: height * 0.6, width: width * 0.12, height: platformHeight });
+    this.platforms.push({ x: width * 2.7, y: height * 0.5, width: width * 0.12, height: platformHeight });
     
-    // More sections for longer level
-    this.platforms.push({ x: width * 3.0, y: height * 0.55, width: width * 0.08, height: platformHeight });
-    this.platforms.push({ x: width * 3.3, y: height * 0.45, width: width * 0.08, height: platformHeight });
-    this.platforms.push({ x: width * 3.6, y: height * 0.35, width: width * 0.08, height: platformHeight });
-    
-    // Final section leading to flag
-    this.platforms.push({ x: width * 4.0, y: height * 0.5, width: width * 0.15, height: platformHeight });
-    this.platforms.push({ x: width * 4.3, y: height * 0.4, width: width * 0.15, height: platformHeight });
-    this.platforms.push({ x: width * 4.8, y: height * 0.3, width: width * 0.20, height: platformHeight });
+    // Final section leading to flag  
+    this.platforms.push({ x: width * 3.2, y: height * 0.4, width: width * 0.20, height: platformHeight });
   }
 
   protected spawnTurtles(): void {

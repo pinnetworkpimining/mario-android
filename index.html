@@ -189,9 +189,40 @@
     <div id="mainMenu">
       <h1 class="menu-title">CYBER RUNNER</h1>
       <button class="menu-button" onclick="startGame()">START GAME</button>
-      <button class="menu-button" onclick="showLevels()">SELECT LEVEL</button>
+      <button class="menu-button" onclick="showLevelSelect()">SELECT LEVEL</button>
       <button class="menu-button" onclick="showSettings()">SETTINGS</button>
       <button class="menu-button" onclick="showCredits()">CREDITS</button>
+    </div>
+    
+    <div id="levelSelectMenu" style="display: none;">
+      <h1 class="menu-title">SELECT LEVEL</h1>
+      <div class="level-grid">
+        <button class="level-button" onclick="startLevel(1)">
+          <div class="level-number">1</div>
+          <div class="level-name">Tutorial</div>
+        </button>
+        <button class="level-button" onclick="startLevel(2)">
+          <div class="level-number">2</div>
+          <div class="level-name">Forest</div>
+        </button>
+        <button class="level-button" onclick="startLevel(3)">
+          <div class="level-number">3</div>
+          <div class="level-name">Mountain</div>
+        </button>
+        <button class="level-button" onclick="startLevel(4)">
+          <div class="level-number">4</div>
+          <div class="level-name">Desert</div>
+        </button>
+        <button class="level-button" onclick="startLevel(5)">
+          <div class="level-number">5</div>
+          <div class="level-name">Ice Cave</div>
+        </button>
+        <button class="level-button" onclick="startLevel(6)">
+          <div class="level-number">6</div>
+          <div class="level-name">Robot Factory</div>
+        </button>
+      </div>
+      <button class="menu-button" onclick="backToMainMenu()">BACK</button>
     </div>
     
     <div id="ui" style="display: none;">
@@ -217,6 +248,7 @@
       
       function startGame() {
         document.getElementById('mainMenu').style.display = 'none';
+       document.getElementById('levelSelectMenu').style.display = 'none';
         document.getElementById('gameCanvas').style.display = 'block';
         document.getElementById('ui').style.display = 'block';
         document.querySelector('.pause-button').style.display = 'block';
@@ -224,14 +256,47 @@
         if (!game) {
           import('./src/main.ts').then(module => {
             game = module.initGame();
+           if (game) {
+             game.loadLevel(1);
+             game.start();
+           }
           });
         } else {
+         game.loadLevel(1);
           game.start();
         }
       }
       
-      function showLevels() {
-        alert('Level selection coming soon!');
+     function startLevel(levelNumber) {
+       document.getElementById('mainMenu').style.display = 'none';
+       document.getElementById('levelSelectMenu').style.display = 'none';
+       document.getElementById('gameCanvas').style.display = 'block';
+       document.getElementById('ui').style.display = 'block';
+       document.querySelector('.pause-button').style.display = 'block';
+       
+       if (!game) {
+         import('./src/main.ts').then(module => {
+           game = module.initGame();
+           if (game) {
+             game.loadLevel(levelNumber);
+             game.start();
+           }
+         });
+       } else {
+         game.loadLevel(levelNumber);
+         game.start();
+       }
+     }
+     
+     function showLevelSelect() {
+       document.getElementById('mainMenu').style.display = 'none';
+       document.getElementById('levelSelectMenu').style.display = 'flex';
+     }
+     
+     function backToMainMenu() {
+       document.getElementById('levelSelectMenu').style.display = 'none';
+       document.getElementById('mainMenu').style.display = 'flex';
+       document.getElementById('levelSelectMenu').style.display = 'none';
       }
       
       function showSettings() {
