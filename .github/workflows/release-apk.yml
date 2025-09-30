@@ -55,11 +55,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Build web app (Vite)
-        run: npm run build
       - name: install terser
         run: npm install --save-dev terser
 
+      - name: Build web app (Vite)
+        run: npm run build
+      
       - name: Copy web assets to Android (Capacitor)
         run: npx cap sync android
 
