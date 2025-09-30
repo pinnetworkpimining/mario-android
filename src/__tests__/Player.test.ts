@@ -1,14 +1,19 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import { Player } from '../game/Player'
-import { InputManager } from '../game/InputManager'
+import { InputSystem } from '../engine/InputSystem'
 
+// Mock canvas for InputSystem
+const mockCanvas = {
+  addEventListener: () => {},
+  getBoundingClientRect: () => ({ left: 0, top: 0, width: 800, height: 600 })
+} as any
 describe('Player', () => {
   let player: Player
-  let inputManager: InputManager
+  let inputSystem: InputSystem
 
   beforeEach(() => {
     player = new Player(100, 400)
-    inputManager = new InputManager()
+    inputSystem = new InputSystem(mockCanvas)
   })
 
   it('should initialize with correct position', () => {
@@ -17,49 +22,50 @@ describe('Player', () => {
   })
 
   it('should move left when ArrowLeft is pressed', () => {
-    inputManager.setKeyState('ArrowLeft', true)
+    // Simulate key press through private method access
+    (inputSystem as any).inputState.keys.set('ArrowLeft', true)
     const initialX = player.x
     
-    player.update(16, inputManager) // 16ms delta time
+    player.update(16, inputSystem) // 16ms delta time
     
     expect(player.x).toBeLessThan(initialX)
   })
 
   it('should move right when ArrowRight is pressed', () => {
-    inputManager.setKeyState('ArrowRight', true)
+    (inputSystem as any).inputState.keys.set('ArrowRight', true)
     const initialX = player.x
     
-    player.update(16, inputManager)
+    player.update(16, inputSystem)
     
     expect(player.x).toBeGreaterThan(initialX)
   })
 
   it('should not move horizontally when no keys are pressed', () => {
     const initialX = player.x
-    player.update(16, inputManager)
+    player.update(16, inputSystem)
     expect(player.x).toBe(initialX)
   })
 
   it('should jump when Space is pressed and player is on ground', () => {
     player.setOnGround(true)
-    inputManager.setKeyState('Space', true)
+    (inputSystem as any).inputState.keys.set('Space', true)
     const initialY = player.y
-    player.update(16, inputManager)
+    player.update(16, inputSystem)
     expect(player.y).toBeLessThan(initialY)
   })
 
   it('should not jump when Space is pressed and player is not on ground', () => {
     player.setOnGround(false)
-    inputManager.setKeyState('Space', true)
+    (inputSystem as any).inputState.keys.set('Space', true)
     const initialY = player.y
-    player.update(16, inputManager)
+    player.update(16, inputSystem)
   expect(player.y).toBeCloseTo(initialY, 0)
   })
 
   it('should apply gravity when not on ground', () => {
     player.setOnGround(false)
     const initialY = player.y
-    player.update(16, inputManager)
+    player.update(16, inputSystem)
     expect(player.y).toBeGreaterThan(initialY)
   })
 

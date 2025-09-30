@@ -57,29 +57,32 @@ export class LevelSelectScene implements Scene {
   public render(renderSystem: RenderSystem): void {
     const config = this.engine.getConfig();
     
-    // Background gradient
+    // Animated background gradient
+    const gradientOffset = Math.sin(this.animationTime * 0.001) * 0.1;
     renderSystem.drawGradientRect(0, 0, config.width, config.height, [
       { offset: 0, color: '#1a1a2e' },
-      { offset: 0.5, color: '#16213e' },
+      { offset: 0.5 + gradientOffset, color: '#16213e' },
       { offset: 1, color: '#0f3460' }
     ]);
     
-    // Grid background
-    renderSystem.drawGrid(100, '#00ffff', 0.05);
+    // Animated grid background
+    const gridAlpha = 0.03 + Math.sin(this.animationTime * 0.002) * 0.02;
+    renderSystem.drawGrid(100, '#00ffff', gridAlpha);
     
-    // Title
+    // Animated title
+    const titleFloat = Math.sin(this.animationTime * 0.003) * 5;
     renderSystem.drawWithShadow(() => {
       renderSystem.drawText(
         'SELECT LEVEL',
         config.width / 2,
-        80,
+        80 + titleFloat,
         'bold 48px Arial',
         '#00ffff',
         'center'
       );
     }, '#00ffff', 15);
     
-    // Level grid
+    // Animated level grid
     const cols = 3;
     const rows = 2;
     const cardWidth = 200;
@@ -97,15 +100,18 @@ export class LevelSelectScene implements Scene {
       this.renderLevelCard(renderSystem, level, x, y, cardWidth, cardHeight, index === this.selectedIndex);
     });
     
-    // Instructions
-    renderSystem.drawText(
-      'Use ARROW KEYS to navigate • SPACE to select • ESC to go back',
-      config.width / 2,
-      config.height - 50,
-      '18px Arial',
-      '#888888',
-      'center'
-    );
+    // Animated instructions
+    const instructionAlpha = Math.sin(this.animationTime * 0.004) * 0.3 + 0.7;
+    renderSystem.drawWithAlpha(() => {
+      renderSystem.drawText(
+        'Use ARROW KEYS to navigate • SPACE to select • ESC to go back',
+        config.width / 2,
+        config.height - 50,
+        '18px Arial',
+        '#888888',
+        'center'
+      );
+    }, instructionAlpha);
     
     // Render touch controls
     this.engine.getInputSystem().renderTouchControls(renderSystem.getContext());
@@ -120,38 +126,57 @@ export class LevelSelectScene implements Scene {
     height: number,
     selected: boolean
   ): void {
-    // Card background
-    const bgColor = level.unlocked ? (selected ? '#16213e' : '#1a1a2e') : '#333333';
-    renderSystem.drawRect(x, y, width, height, bgColor);
+    // Animated card background
+    const hoverScale = selected ? 1 + Math.sin(this.animationTime * 0.008) * 0.05 : 1;
+    const floatOffset = selected ? Math.sin(this.animationTime * 0.006) * 3 : 0;
     
-    // Card border
+    const ctx = renderSystem.getContext();
+    ctx.save();
+    ctx.translate(x + width / 2, y + height / 2 + floatOffset);
+    ctx.scale(hoverScale, hoverScale);
+    ctx.translate(-(x + width / 2), -(y + height / 2 + floatOffset));
+    
+    const bgColor = level.unlocked ? (selected ? '#16213e' : '#1a1a2e') : '#333333';
+    renderSystem.drawRect(x, y + floatOffset, width, height, bgColor);
+    
+    // Animated card border
     const borderColor = selected ? '#ff00ff' : (level.unlocked ? '#00ffff' : '#666666');
     const borderWidth = selected ? 3 : 2;
-    renderSystem.drawRectOutline(x, y, width, height, borderColor, borderWidth);
+    renderSystem.drawRectOutline(x, y + floatOffset, width, height, borderColor, borderWidth);
     
     if (selected) {
+      const glowIntensity = Math.sin(this.animationTime * 0.01) * 10 + 15;
       renderSystem.drawWithShadow(() => {
-        renderSystem.drawRectOutline(x, y, width, height, '#ff00ff', 3);
-      }, '#ff00ff', 10);
+        renderSystem.drawRectOutline(x, y + floatOffset, width, height, '#ff00ff', 3);
+      }, '#ff00ff', glowIntensity);
     }
     
-    // Level number
+    // Animated level number
+    const numberPulse = selected ? 1 + Math.sin(this.animationTime * 0.01) * 0.2 : 1;
     const numberColor = level.unlocked ? '#00ffff' : '#666666';
+    
+    ctx.save();
+    ctx.translate(x + width / 2, y + 40 + floatOffset);
+    ctx.scale(numberPulse, numberPulse);
+    ctx.translate(-(x + width / 2), -(y + 40 + floatOffset));
+    
     renderSystem.drawText(
       level.number.toString(),
       x + width / 2,
-      y + 40,
+      y + 40 + floatOffset,
       'bold 36px Arial',
       numberColor,
       'center'
     );
+    
+    ctx.restore();
     
     // Level name
     const nameColor = level.unlocked ? '#ffffff' : '#888888';
     renderSystem.drawText(
       level.name,
       x + width / 2,
-      y + 80,
+      y + 80 + floatOffset,
       'bold 18px Arial',
       nameColor,
       'center'
@@ -162,7 +187,7 @@ export class LevelSelectScene implements Scene {
     renderSystem.drawText(
       level.description,
       x + width / 2,
-      y + 105,
+      y + 105 + floatOffset,
       '14px Arial',
       descColor,
       'center'
@@ -173,12 +198,22 @@ export class LevelSelectScene implements Scene {
       renderSystem.drawText(
         '🔒',
         x + width - 25,
-        y + 25,
+        y + 25 + floatOffset,
         '20px Arial',
         '#666666',
         'center'
       );
     }
+    
+    // Progress indicator for unlocked levels
+    if (level.unlocked && !selected) {
+      const progressAlpha = Math.sin(this.animationTime * 0.005 + level.number) * 0.2 + 0.3;
+      renderSystem.drawWithAlpha(() => {
+        renderSystem.drawText('✓', x + width - 25, y + height - 25 + floatOffset, '16px Arial', '#00ff00', 'center');
+      }, progressAlpha);
+    }
+    
+    ctx.restore();
   }
 
   private handleKeyDown(key: string): void {

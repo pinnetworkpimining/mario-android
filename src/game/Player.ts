@@ -1,4 +1,5 @@
 import { InputManager } from './InputManager';
+import { InputSystem } from '../engine/InputSystem';
 import { AudioManager } from './AudioManager';
 
 export class Player {
@@ -36,7 +37,7 @@ export class Player {
     this.audioManager = new AudioManager();
   }
 
-  public update(deltaTime: number, inputManager: InputManager): void {
+  public update(deltaTime: number, inputSystem: InputSystem): void {
     const dt = deltaTime / 1000; // Convert to seconds
     
     // Update invulnerability
@@ -49,11 +50,11 @@ export class Player {
 
     // Handle horizontal movement
     this.isMoving = false;
-    if (inputManager.isKeyPressed('ArrowLeft') || inputManager.isKeyPressed('KeyA')) {
+    if (inputSystem.isKeyPressed('ArrowLeft') || inputSystem.isKeyPressed('KeyA')) {
       this.velocityX = -this.speed;
       this.facingRight = false;
       this.isMoving = true;
-    } else if (inputManager.isKeyPressed('ArrowRight') || inputManager.isKeyPressed('KeyD')) {
+    } else if (inputSystem.isKeyPressed('ArrowRight') || inputSystem.isKeyPressed('KeyD')) {
       this.velocityX = this.speed;
       this.facingRight = true;
       this.isMoving = true;
@@ -62,7 +63,7 @@ export class Player {
     }
 
     // Handle jumping
-    if ((inputManager.isKeyPressed('Space') || inputManager.isKeyPressed('KeyW')) && this.onGround) {
+    if ((inputSystem.isKeyPressed('Space') || inputSystem.isKeyPressed('KeyW')) && this.onGround) {
       this.velocityY = -this.jumpPower;
       this.onGround = false;
       this.jumpAnimationTimer = 300; // Jump animation duration
@@ -134,35 +135,54 @@ export class Player {
   private renderAdvancedCharacter(ctx: CanvasRenderingContext2D, scaledWidth: number, scaledHeight: number): void {
     const isJumping = this.jumpAnimationTimer > 0;
     const walkOffset = this.isMoving ? Math.sin(this.animationFrame * Math.PI / 2) * 3 : 0;
+    const breathingOffset = Math.sin(Date.now() * 0.003) * 1;
     
-    // Make character more colorful and appealing
+    // Enhanced character with better graphics and animations
     // Body (main torso)
-    ctx.fillStyle = '#4169E1'; // Royal blue - more appealing
-    ctx.fillRect(this.x + 12, this.y + 24 + walkOffset, 40, 32);
+    const bodyGradient = ctx.createLinearGradient(this.x + 12, this.y + 24, this.x + 52, this.y + 56);
+    bodyGradient.addColorStop(0, '#4169E1');
+    bodyGradient.addColorStop(0.5, '#6495ED');
+    bodyGradient.addColorStop(1, '#4169E1');
+    ctx.fillStyle = bodyGradient;
+    ctx.fillRect(this.x + 12, this.y + 24 + walkOffset + breathingOffset, 40, 32);
     
     // Head
-    ctx.fillStyle = '#FFD700'; // Gold - more attractive
-    ctx.fillRect(this.x + 16, this.y + 4, 32, 24);
+    const headGradient = ctx.createRadialGradient(this.x + 32, this.y + 16, 5, this.x + 32, this.y + 16, 20);
+    headGradient.addColorStop(0, '#FFD700');
+    headGradient.addColorStop(0.7, '#FFA500');
+    headGradient.addColorStop(1, '#FF8C00');
+    ctx.fillStyle = headGradient;
+    ctx.fillRect(this.x + 16, this.y + 4 + breathingOffset, 32, 24);
     
-    // Hero helmet
-    ctx.fillStyle = '#8B0000'; // Dark red - heroic
-    ctx.fillRect(this.x + 12, this.y, 40, 12);
+    // Hero helmet with gradient
+    const helmetGradient = ctx.createLinearGradient(this.x + 12, this.y, this.x + 52, this.y + 12);
+    helmetGradient.addColorStop(0, '#8B0000');
+    helmetGradient.addColorStop(0.5, '#DC143C');
+    helmetGradient.addColorStop(1, '#8B0000');
+    ctx.fillStyle = helmetGradient;
+    ctx.fillRect(this.x + 12, this.y + breathingOffset, 40, 12);
     
-    // Hero visor
+    // Hero visor with glow effect
     ctx.fillStyle = '#00BFFF'; // Deep sky blue
     ctx.shadowColor = '#00BFFF';
-    ctx.shadowBlur = 10;
-    ctx.fillRect(this.x + 16, this.y + 8, 32, 4);
+    ctx.shadowBlur = 15;
+    ctx.fillRect(this.x + 16, this.y + 8 + breathingOffset, 32, 4);
     ctx.shadowBlur = 0;
     
-    // Arms
-    ctx.fillStyle = '#32CD32'; // Lime green - friendly
-    const armY = this.y + 28 + walkOffset;
+    // Arms with gradient
+    const armGradient = ctx.createLinearGradient(this.x + 4, this.y + 28, this.x + 16, this.y + 48);
+    armGradient.addColorStop(0, '#32CD32');
+    armGradient.addColorStop(1, '#228B22');
+    ctx.fillStyle = armGradient;
+    const armY = this.y + 28 + walkOffset + breathingOffset;
     ctx.fillRect(this.x + 4, armY, 12, 20); // Left arm
     ctx.fillRect(this.x + 48, armY, 12, 20); // Right arm
     
-    // Legs with walking animation
-    ctx.fillStyle = '#FF6347'; // Tomato red - vibrant
+    // Legs with walking animation and gradient
+    const legGradient = ctx.createLinearGradient(this.x + 16, this.y + 56, this.x + 48, this.y + 64);
+    legGradient.addColorStop(0, '#FF6347');
+    legGradient.addColorStop(1, '#CD5C5C');
+    ctx.fillStyle = legGradient;
     const legOffset = this.isMoving && this.onGround ? Math.sin(this.animationFrame * Math.PI) * 6 : 0;
     if (isJumping) {
       // Jumping pose - legs together
@@ -173,8 +193,12 @@ export class Player {
       ctx.fillRect(this.x + 36 - legOffset, this.y + 56, 12, 8);
     }
     
-    // Hero boots
-    ctx.fillStyle = '#8A2BE2'; // Blue violet
+    // Hero boots with shine effect
+    const bootGradient = ctx.createLinearGradient(this.x + 16, this.y + 60, this.x + 48, this.y + 64);
+    bootGradient.addColorStop(0, '#8A2BE2');
+    bootGradient.addColorStop(0.5, '#9370DB');
+    bootGradient.addColorStop(1, '#8A2BE2');
+    ctx.fillStyle = bootGradient;
     if (isJumping) {
       ctx.fillRect(this.x + 20, this.y + 60, 24, 4);
     } else {
@@ -182,22 +206,49 @@ export class Player {
       ctx.fillRect(this.x + 36 - legOffset, this.y + 60, 12, 4);
     }
     
-    // Hero emblem
-    ctx.fillStyle = '#FF1493'; // Deep pink - eye-catching
+    // Hero emblem with pulsing effect
+    const emblemPulse = 1 + Math.sin(Date.now() * 0.01) * 0.2;
+    ctx.fillStyle = '#FF1493';
     ctx.shadowColor = '#FF1493';
-    ctx.shadowBlur = 15;
-    ctx.fillRect(this.x + 24, this.y + 32, 16, 12);
+    ctx.shadowBlur = 15 * emblemPulse;
+    ctx.save();
+    ctx.translate(this.x + 32, this.y + 38 + walkOffset + breathingOffset);
+    ctx.scale(emblemPulse, emblemPulse);
+    ctx.fillRect(-8, -6, 16, 12);
+    ctx.restore();
     ctx.shadowBlur = 0;
     
-    // Magic sparkles around player
+    // Enhanced magic sparkles around player
     if (this.health > 50) {
-      ctx.fillStyle = '#FFD700'; // Gold sparkles
-      ctx.globalAlpha = 0.7;
-      for (let i = 0; i < 3; i++) {
-        const offsetX = Math.sin(Date.now() * 0.01 + i) * 10;
-        const offsetY = Math.cos(Date.now() * 0.01 + i) * 10;
-        ctx.fillRect(this.x + 32 + offsetX, this.y + 32 + offsetY, 2, 2);
+      for (let i = 0; i < 5; i++) {
+        const time = Date.now() * 0.005;
+        const offsetX = Math.sin(time + i * 1.2) * 15;
+        const offsetY = Math.cos(time + i * 1.5) * 15;
+        const sparkleAlpha = Math.sin(time * 2 + i) * 0.3 + 0.5;
+        const sparkleSize = 2 + Math.sin(time * 3 + i) * 1;
+        
+        ctx.globalAlpha = sparkleAlpha;
+        ctx.fillStyle = i % 2 === 0 ? '#FFD700' : '#00FFFF';
+        ctx.shadowColor = ctx.fillStyle;
+        ctx.shadowBlur = 8;
+        
+        ctx.beginPath();
+        ctx.arc(this.x + 32 + offsetX, this.y + 32 + offsetY + walkOffset + breathingOffset, sparkleSize, 0, Math.PI * 2);
+        ctx.fill();
       }
+      ctx.globalAlpha = 1;
+      ctx.shadowBlur = 0;
+    }
+    
+    // Power-up aura when invulnerable
+    if (this.invulnerable) {
+      const auraAlpha = Math.sin(Date.now() * 0.02) * 0.3 + 0.4;
+      ctx.globalAlpha = auraAlpha;
+      ctx.strokeStyle = '#FFFF00';
+      ctx.lineWidth = 3;
+      ctx.shadowColor = '#FFFF00';
+      ctx.shadowBlur = 20;
+      ctx.strokeRect(this.x - 5, this.y - 5 + breathingOffset, scaledWidth + 10, scaledHeight + 10);
       ctx.globalAlpha = 1;
       ctx.shadowBlur = 0;
     }

@@ -55,48 +55,113 @@ export class MainMenuScene implements Scene {
   public render(renderSystem: RenderSystem): void {
     const config = this.engine.getConfig();
     
-    // Background gradient
+    // Animated background gradient
+    const gradientOffset = Math.sin(this.animationTime * 0.001) * 0.2;
     renderSystem.drawGradientRect(0, 0, config.width, config.height, [
       { offset: 0, color: '#1a1a2e' },
-      { offset: 0.5, color: '#16213e' },
+      { offset: 0.5 + gradientOffset, color: '#16213e' },
       { offset: 1, color: '#0f3460' }
     ]);
     
-    // Grid background
-    renderSystem.drawGrid(100, '#00ffff', 0.1);
+    // Animated grid background
+    const gridAlpha = 0.05 + Math.sin(this.animationTime * 0.002) * 0.03;
+    renderSystem.drawGrid(100, '#00ffff', gridAlpha);
     
-    // Title
+    // Animated title with floating effect
     const titleY = config.height * 0.25;
-    const titleGlow = Math.sin(this.animationTime * 0.003) * 0.3 + 0.7;
+    const titleFloat = Math.sin(this.animationTime * 0.002) * 10;
+    const titleGlow = Math.sin(this.animationTime * 0.003) * 0.5 + 0.8;
+    const titleScale = 1 + Math.sin(this.animationTime * 0.001) * 0.05;
     
     renderSystem.drawWithShadow(() => {
+      // Save context for scaling
+      const ctx = renderSystem.getContext();
+      ctx.save();
+      ctx.translate(config.width / 2, titleY + titleFloat);
+      ctx.scale(titleScale, titleScale);
+      ctx.translate(-config.width / 2, -(titleY + titleFloat));
+      
       renderSystem.drawText(
         'CYBER RUNNER',
         config.width / 2,
-        titleY,
+        titleY + titleFloat,
         'bold 64px Arial',
         '#00ffff',
         'center'
       );
+      
+      ctx.restore();
     }, `rgba(0, 255, 255, ${titleGlow})`, 20);
     
-    // Menu items
+    // Animated menu items with hover effects
     this.menuItems.forEach((item, index) => {
       const isSelected = index === this.selectedIndex;
+      const hoverOffset = isSelected ? Math.sin(this.animationTime * 0.008) * 5 : 0;
       const color = isSelected ? '#ff00ff' : '#ffffff';
       const font = isSelected ? 'bold 36px Arial' : '32px Arial';
-      const glow = isSelected ? Math.sin(this.animationTime * 0.005) * 10 + 15 : 0;
+      const glow = isSelected ? Math.sin(this.animationTime * 0.005) * 15 + 20 : 0;
+      const scale = isSelected ? 1 + Math.sin(this.animationTime * 0.006) * 0.1 : 1;
       
       if (isSelected && glow > 0) {
         renderSystem.drawWithShadow(() => {
-          renderSystem.drawText(item.text, config.width / 2, item.y, font, color, 'center');
+          const ctx = renderSystem.getContext();
+          ctx.save();
+          ctx.translate(config.width / 2, item.y + hoverOffset);
+          ctx.scale(scale, scale);
+          ctx.translate(-config.width / 2, -(item.y + hoverOffset));
+          
+          renderSystem.drawText(item.text, config.width / 2, item.y + hoverOffset, font, color, 'center');
+          
+          ctx.restore();
         }, color, glow);
       } else {
-        renderSystem.drawText(item.text, config.width / 2, item.y, font, color, 'center');
+        renderSystem.drawText(item.text, config.width / 2, item.y + hoverOffset, font, color, 'center');
+      }
+      
+      // Add selection indicator
+      if (isSelected) {
+        const indicatorAlpha = Math.sin(this.animationTime * 0.01) * 0.3 + 0.7;
+        renderSystem.drawWithAlpha(() => {
+          renderSystem.drawText('►', config.width / 2 - 150, item.y + hoverOffset, '32px Arial', '#ff00ff', 'center');
+          renderSystem.drawText('◄', config.width / 2 + 150, item.y + hoverOffset, '32px Arial', '#ff00ff', 'center');
+        }, indicatorAlpha);
       }
     });
     
-    // Instructions
+    // Animated instructions
+    const instructionAlpha = Math.sin(this.animationTime * 0.004) * 0.3 + 0.7;
+    renderSystem.drawWithAlpha(() => {
+      renderSystem.drawText(
+        'Use ARROW KEYS or TOUCH to navigate • SPACE or TAP to select',
+        config.width / 2,
+        config.height * 0.9,
+        '18px Arial',
+        '#888888',
+        'center'
+      );
+    }, instructionAlpha);
+    
+    // Floating particles effect
+    this.renderFloatingParticles(renderSystem, config);
+    
+    // Render touch controls
+    this.engine.getInputSystem().renderTouchControls(renderSystem.getContext());
+  }
+  
+  private renderFloatingParticles(renderSystem: RenderSystem, config: any): void {
+    const particleCount = 20;
+    
+    for (let i = 0; i < particleCount; i++) {
+      const x = (config.width / particleCount) * i + Math.sin(this.animationTime * 0.001 + i) * 50;
+      const y = config.height * 0.1 + Math.cos(this.animationTime * 0.002 + i) * 30;
+      const alpha = Math.sin(this.animationTime * 0.003 + i) * 0.3 + 0.4;
+      const size = 2 + Math.sin(this.animationTime * 0.004 + i) * 1;
+      
+      renderSystem.drawWithAlpha(() => {
+        renderSystem.drawCircle(x, y, size, '#00ffff');
+      }, alpha);
+    }
+  }
     renderSystem.drawText(
       'Use ARROW KEYS or TOUCH to navigate • SPACE or TAP to select',
       config.width / 2,
