@@ -133,3 +133,11 @@ window.addEventListener('resize', () => {
 
 // Export for global access (needed for HTML buttons)
 (window as any).gameEngine = gameEngine;
+
+// Function to handle level completion from levels
+(window as any).levelCompleted = (levelNumber: number) => {
+  const gameScene = gameEngine?.getSceneManager().getCurrentScene();
+  if (gameScene && gameScene.name === 'Game' && (gameScene as any).levelCompleted) {
+    (gameScene as any).levelCompleted(levelNumber);
+  }
+};

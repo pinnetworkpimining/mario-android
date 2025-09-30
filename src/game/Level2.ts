@@ -163,7 +163,7 @@ export class Level2 extends Level {
         playerBounds.x < platform.x + platform.width &&
         playerBounds.x + playerBounds.width > platform.x &&
         playerBounds.y < platform.y + platform.height &&
-        playerBounds.y + playerBounds.height > platform.y
+        playerBounds.y + playerBounds.height >= platform.y
       ) {
         // Check if player is falling onto platform from above
         if (player.getVelocityY() > 0 && playerBounds.y < platform.y) {
@@ -221,11 +221,10 @@ export class Level2 extends Level {
 
       setTimeout(() => {
         this.hideMessage();
-        import('./Level3').then(({ }) => {
-          const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
-          const game = new Game(canvas);
-          game.loadLevel(3);
-        });
+        // Signal level completion to the scene system
+        if ((window as any).levelCompleted) {
+          (window as any).levelCompleted(2);
+        }
       }, 2000);
     } else {
       this.showGameOverMessage();

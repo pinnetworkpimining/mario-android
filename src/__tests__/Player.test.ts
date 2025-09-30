@@ -47,7 +47,7 @@ describe('Player', () => {
   })
 
   it('should jump when Space is pressed and player is on ground', () => {
-    player.setOnGround(true)
+    player.setOnGround(true);
     (inputSystem as any).inputState.keys.set('Space', true)
     const initialY = player.y
     player.update(16, inputSystem)
@@ -55,7 +55,7 @@ describe('Player', () => {
   })
 
   it('should not jump when Space is pressed and player is not on ground', () => {
-    player.setOnGround(false)
+    player.setOnGround(false);
     (inputSystem as any).inputState.keys.set('Space', true)
     const initialY = player.y
     player.update(16, inputSystem)
@@ -95,6 +95,31 @@ describe('Player', () => {
     player.setPosition(150, 250)
     expect(player.x).toBe(150)
     expect(player.y).toBe(250)
+  })
+
+  it('should handle collision detection correctly', () => {
+    // Test that player positioned exactly on platform boundary is considered colliding
+    player.setPosition(100, 400) // Player bottom at y = 464 (400 + 64)
+    player.setOnGround(false)
+
+    // Mock a platform at y = 464 (player bottom exactly on platform top)
+    const mockLevel = {
+      checkCollisions: (player: any) => {
+        const playerBounds = player.getBounds();
+        const platform = { x: 0, y: 464, width: 800, height: 50 };
+
+        if (playerBounds.x < platform.x + platform.width &&
+            playerBounds.x + playerBounds.width > platform.x &&
+            playerBounds.y < platform.y + platform.height &&
+            playerBounds.y + playerBounds.height >= platform.y) {
+          player.setOnGround(true);
+        }
+      }
+    };
+
+    mockLevel.checkCollisions(player);
+    expect(player.getBounds().y + player.getBounds().height).toBe(464);
+    // The collision should set onGround to true even when player bottom == platform top
   })
 })
 

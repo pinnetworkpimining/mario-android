@@ -241,50 +241,40 @@
       <button class="menu-button" onclick="goToMenu()">MAIN MENU</button>
     </div>
     
-    <canvas id="gameCanvas" width="1920" height="1080" style="display: none;"></canvas>
+    <canvas id="gameCanvas" width="1920" height="1080" style="display: none;" tabindex="0" onclick="this.focus()"></canvas>
     
     <script>
       let game = null;
       
-      function startGame() {
+      async function startGame() {
         document.getElementById('mainMenu').style.display = 'none';
        document.getElementById('levelSelectMenu').style.display = 'none';
         document.getElementById('gameCanvas').style.display = 'block';
         document.getElementById('ui').style.display = 'block';
         document.querySelector('.pause-button').style.display = 'block';
-        
-        if (!game) {
-          import('./src/main.ts').then(module => {
-            game = module.initGame();
-           if (game) {
-             game.loadLevel(1);
-             game.start();
-           }
-          });
-        } else {
-         game.loadLevel(1);
-          game.start();
+
+        // Game is already initialized by main.ts, load the Game scene
+        if (window.gameEngine) {
+          await window.gameEngine.getSceneManager().loadScene('Game');
+          window.gameEngine.start();
+          // Focus the canvas for keyboard input
+          document.getElementById('gameCanvas').focus();
         }
       }
       
-     function startLevel(levelNumber) {
+     async function startLevel(levelNumber) {
        document.getElementById('mainMenu').style.display = 'none';
        document.getElementById('levelSelectMenu').style.display = 'none';
        document.getElementById('gameCanvas').style.display = 'block';
        document.getElementById('ui').style.display = 'block';
        document.querySelector('.pause-button').style.display = 'block';
-       
-       if (!game) {
-         import('./src/main.ts').then(module => {
-           game = module.initGame();
-           if (game) {
-             game.loadLevel(levelNumber);
-             game.start();
-           }
-         });
-       } else {
-         game.loadLevel(levelNumber);
-         game.start();
+
+       // Game is already initialized by main.ts, load the Game scene
+       if (window.gameEngine) {
+         await window.gameEngine.getSceneManager().loadScene('Game');
+         window.gameEngine.start();
+         // Focus the canvas for keyboard input
+         document.getElementById('gameCanvas').focus();
        }
      }
      

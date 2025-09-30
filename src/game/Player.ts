@@ -39,7 +39,7 @@ export class Player {
 
   public update(deltaTime: number, inputSystem: InputSystem): void {
     const dt = deltaTime / 1000; // Convert to seconds
-    
+
     // Update invulnerability
     if (this.invulnerable) {
       this.invulnerabilityTimer -= deltaTime;

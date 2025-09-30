@@ -28,10 +28,12 @@ export class InputSystem {
   private inputState: InputState;
   private touchButtons: TouchButton[] = [];
   private callbacks: Map<string, Function[]> = new Map();
+  private dpr: number;
 
   constructor(canvas: HTMLCanvasElement) {
     this.logger = Logger.getInstance();
     this.canvas = canvas;
+    this.dpr = window.devicePixelRatio || 1;
     this.inputState = {
       keys: new Map(),
       touches: new Map(),
@@ -41,7 +43,7 @@ export class InputSystem {
 
     this.setupEventListeners();
     this.setupTouchButtons();
-    
+
     this.logger.info('InputSystem initialized');
   }
 
@@ -55,11 +57,11 @@ export class InputSystem {
     this.canvas.addEventListener('mouseup', this.handleMouseUp.bind(this));
     this.canvas.addEventListener('mousemove', this.handleMouseMove.bind(this));
 
-    // Touch events
-    this.canvas.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
-    this.canvas.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
-    this.canvas.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
-    this.canvas.addEventListener('touchcancel', this.handleTouchEnd.bind(this), { passive: false });
+    // Touch events - listen on document for better mobile support
+    document.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
+    document.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
+    document.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
+    document.addEventListener('touchcancel', this.handleTouchEnd.bind(this), { passive: false });
 
     // Window events
     window.addEventListener('resize', this.handleResize.bind(this));
@@ -70,6 +72,8 @@ export class InputSystem {
     const buttonSize = Math.min(window.innerWidth, window.innerHeight) * 0.08;
     const margin = 20;
     const bottomMargin = 30;
+
+    console.log(`Setting up touch buttons. Window: ${window.innerWidth}x${window.innerHeight}, DPR: ${this.dpr}`);
 
     this.touchButtons = [
       {
@@ -100,12 +104,14 @@ export class InputSystem {
         pressed: false
       }
     ];
+
+    console.log('Touch buttons:', this.touchButtons);
   }
 
   private handleKeyDown(event: KeyboardEvent): void {
     this.inputState.keys.set(event.code, true);
     this.emit('keydown', event.code);
-    
+
     // Prevent default for game keys
     if (['Space', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'KeyW', 'KeyA', 'KeyS', 'KeyD'].includes(event.code)) {
       event.preventDefault();
@@ -141,17 +147,22 @@ export class InputSystem {
 
   private handleTouchStart(event: TouchEvent): void {
     event.preventDefault();
-    
+    console.log('Touch start event received');
+
     for (const touch of Array.from(event.touches)) {
       this.inputState.touches.set(touch.identifier, touch);
-      
+
       const rect = this.canvas.getBoundingClientRect();
-      const x = touch.clientX - rect.left;
-      const y = touch.clientY - rect.top;
+      const x = (touch.clientX - rect.left) / this.dpr;
+      const y = (touch.clientY - rect.top) / this.dpr;
+
+      console.log(`Touch at (${x}, ${y}), canvas rect: ${rect.left}, ${rect.top}, ${rect.width}x${rect.height}`);
 
       // Check touch buttons
       for (const button of this.touchButtons) {
+        console.log(`Checking button ${button.id} at (${button.x}, ${button.y}) size ${button.width}x${button.height}`);
         if (this.isPointInButton(x, y, button) && !button.pressed) {
+          console.log(`Button ${button.id} pressed, setting key ${button.action}`);
           button.pressed = true;
           this.inputState.keys.set(button.action, true);
           this.emit('keydown', button.action);
@@ -163,7 +174,7 @@ export class InputSystem {
 
   private handleTouchMove(event: TouchEvent): void {
     event.preventDefault();
-    
+
     // Reset all buttons first
     for (const button of this.touchButtons) {
       if (button.pressed) {
@@ -176,10 +187,10 @@ export class InputSystem {
     // Check current touches
     for (const touch of Array.from(event.touches)) {
       this.inputState.touches.set(touch.identifier, touch);
-      
+
       const rect = this.canvas.getBoundingClientRect();
-      const x = touch.clientX - rect.left;
-      const y = touch.clientY - rect.top;
+      const x = (touch.clientX - rect.left) / this.dpr;
+      const y = (touch.clientY - rect.top) / this.dpr;
 
       for (const button of this.touchButtons) {
         if (this.isPointInButton(x, y, button) && !button.pressed) {
@@ -194,27 +205,27 @@ export class InputSystem {
 
   private handleTouchEnd(event: TouchEvent): void {
     event.preventDefault();
-    
+
     // Remove ended touches
     for (const touch of Array.from(event.changedTouches)) {
       this.inputState.touches.delete(touch.identifier);
     }
-    
+
     // Reset buttons that are no longer being touched
     for (const button of this.touchButtons) {
       let stillTouched = false;
-      
+
       for (const touch of Array.from(event.touches)) {
         const rect = this.canvas.getBoundingClientRect();
-        const x = touch.clientX - rect.left;
-        const y = touch.clientY - rect.top;
-        
+        const x = (touch.clientX - rect.left) / this.dpr;
+        const y = (touch.clientY - rect.top) / this.dpr;
+
         if (this.isPointInButton(x, y, button)) {
           stillTouched = true;
           break;
         }
       }
-      
+
       if (!stillTouched && button.pressed) {
         button.pressed = false;
         this.inputState.keys.set(button.action, false);
@@ -290,17 +301,31 @@ export class InputSystem {
     // Input system update logic if needed
   }
 
+  public clearKeys(): void {
+    this.inputState.keys.clear();
+    // Also reset touch buttons
+    for (const button of this.touchButtons) {
+      button.pressed = false;
+    }
+  }
+
   public renderTouchControls(ctx: CanvasRenderingContext2D): void {
     ctx.save();
-    
+
     for (const button of this.touchButtons) {
+      // Adjust button positions for DPR
+      const x = button.x / this.dpr;
+      const y = button.y / this.dpr;
+      const width = button.width / this.dpr;
+      const height = button.height / this.dpr;
+
       // Button background
       ctx.fillStyle = button.pressed ? 'rgba(0, 255, 255, 0.9)' : 'rgba(0, 255, 255, 0.6)';
       ctx.beginPath();
       ctx.arc(
-        button.x + button.width / 2,
-        button.y + button.height / 2,
-        button.width / 2,
+        x + width / 2,
+        y + height / 2,
+        width / 2,
         0,
         Math.PI * 2
       );
@@ -318,24 +343,24 @@ export class InputSystem {
 
       // Button icon
       ctx.fillStyle = button.pressed ? '#ffffff' : '#1a1a2e';
-      ctx.font = `bold ${button.width * 0.4}px Arial`;
+      ctx.font = `bold ${width * 0.4}px Arial`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      
+
       let text = '';
       switch (button.action) {
         case 'ArrowLeft': text = '←'; break;
         case 'ArrowRight': text = '→'; break;
         case 'Space': text = '↑'; break;
       }
-      
+
       ctx.fillText(
         text,
-        button.x + button.width / 2,
-        button.y + button.height / 2
+        x + width / 2,
+        y + height / 2
       );
     }
-    
+
     ctx.restore();
   }
 }

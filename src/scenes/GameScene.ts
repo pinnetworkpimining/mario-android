@@ -9,11 +9,6 @@ import { GameEngine } from '../engine/GameEngine';
 import { Logger } from '../engine/Logger';
 import { Player } from '../game/Player';
 import { Level } from '../game/Level';
-import { Level2 } from '../game/Level2';
-import { Level3 } from '../game/Level3';
-import { Level4 } from '../game/Level4';
-import { Level5 } from '../game/Level5';
-import { Level6 } from '../game/Level6';
 
 export class GameScene implements Scene {
   public name: string = 'Game';
@@ -28,6 +23,7 @@ export class GameScene implements Scene {
   private camera: { x: number; y: number } = { x: 0, y: 0 };
   private messageTimer: number = 0;
   private currentMessage: string = '';
+  private keyDownHandler: Function;
 
   constructor() {
     this.logger = Logger.getInstance();
@@ -45,17 +41,21 @@ export class GameScene implements Scene {
     this.player = new Player(startX, startY);
     
     // Load first level
-    this.loadLevel(1);
+    await this.loadLevel(1);
     
     // Setup input handlers
-    this.engine.getInputSystem().on('keydown', this.handleKeyDown.bind(this));
-    
+    this.keyDownHandler = this.handleKeyDown.bind(this);
+    this.engine.getInputSystem().on('keydown', this.keyDownHandler);
+
+    // Clear any stuck keys from menu
+    this.engine.getInputSystem().clearKeys();
+
     this.gameState = 'playing';
   }
 
   public async unload(): Promise<void> {
     this.logger.info('Unloading Game scene');
-    this.engine.getInputSystem().off('keydown', this.handleKeyDown.bind(this));
+    this.engine.getInputSystem().off('keydown', this.keyDownHandler);
   }
 
   public update(deltaTime: number): void {
@@ -116,46 +116,62 @@ export class GameScene implements Scene {
     }
   }
 
-  private loadLevel(levelNumber: number): void {
+  private async loadLevel(levelNumber: number): Promise<void> {
     this.logger.info(`Loading level ${levelNumber}`);
     this.levelNumber = levelNumber;
-    
+
     const config = this.engine.getConfig();
     const groundY = config.height * 0.85;
     const startX = config.width * 0.1;
-    
-    // Create level based on number
-    switch (levelNumber) {
-      case 1:
-        this.currentLevel = new Level();
-        break;
-      case 2:
-        this.currentLevel = new Level2();
-        break;
-      case 3:
-        this.currentLevel = new Level3();
-        break;
-      case 4:
-        this.currentLevel = new Level4();
-        break;
-      case 5:
-        this.currentLevel = new Level5();
-        break;
-      case 6:
-        this.currentLevel = new Level6();
-        break;
-      default:
-        this.currentLevel = new Level();
+
+    try {
+      // Create level based on number
+      switch (levelNumber) {
+        case 1:
+          this.currentLevel = new Level();
+          break;
+        case 2:
+          const { Level2 } = await import('../game/Level2');
+          this.currentLevel = new Level2();
+          break;
+        case 3:
+          const { Level3 } = await import('../game/Level3');
+          this.currentLevel = new Level3();
+          break;
+        case 4:
+          const { Level4 } = await import('../game/Level4');
+          this.currentLevel = new Level4();
+          break;
+        case 5:
+          const { Level5 } = await import('../game/Level5');
+          this.currentLevel = new Level5();
+          break;
+        case 6:
+          const { Level6 } = await import('../game/Level6');
+          this.currentLevel = new Level6();
+          break;
+        default:
+          this.currentLevel = new Level();
+      }
+
+      // Reset player position
+      if (this.player) {
+        this.player.reset(startX, groundY - 64);
+      }
+
+      // Reset camera
+      this.camera.x = 0;
+      this.camera.y = 0;
+    } catch (error) {
+      this.logger.error(`Error loading level ${levelNumber}: ${error}`);
+      // Fallback to level 1
+      this.currentLevel = new Level();
+      if (this.player) {
+        this.player.reset(startX, groundY - 64);
+      }
+      this.camera.x = 0;
+      this.camera.y = 0;
     }
-    
-    // Reset player position
-    if (this.player) {
-      this.player.reset(startX, groundY - 64);
-    }
-    
-    // Reset camera
-    this.camera.x = 0;
-    this.camera.y = 0;
   }
 
   private updateCamera(): void {
@@ -222,8 +238,8 @@ export class GameScene implements Scene {
     
     if (this.levelNumber < 6) {
       this.showMessage(`Level ${this.levelNumber} Complete!`, 3000);
-      setTimeout(() => {
-        this.loadLevel(this.levelNumber + 1);
+      setTimeout(async () => {
+        await this.loadLevel(this.levelNumber + 1);
       }, 3000);
     } else {
       this.showMessage('🎉 ALL LEVELS COMPLETED! 🎉', 5000);
@@ -323,5 +339,17 @@ export class GameScene implements Scene {
   public addScore(points: number): void {
     this.score += points;
     this.engine.getAudioSystem().playSound('coin');
+  }
+
+  public levelCompleted(levelNumber: number): void {
+    this.logger.info(`Level ${levelNumber} completed, loading next level`);
+    if (levelNumber < 6) {
+      this.loadLevel(levelNumber + 1);
+    } else {
+      this.showMessage('🎉 ALL LEVELS COMPLETED! 🎉', 5000);
+      setTimeout(async () => {
+        await this.engine.getSceneManager().loadScene('MainMenu');
+      }, 5000);
+    }
   }
 }

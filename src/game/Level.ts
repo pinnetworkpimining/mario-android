@@ -227,8 +227,8 @@ export class Level extends BaseLevel {
       if (playerBounds.x < platform.x + platform.width &&
           playerBounds.x + playerBounds.width > platform.x &&
           playerBounds.y < platform.y + platform.height &&
-          playerBounds.y + playerBounds.height > platform.y) {
-        
+          playerBounds.y + playerBounds.height >= platform.y) {
+
         // Check if player is falling onto platform from above
         if (player.getVelocityY() > 0 && playerBounds.y < platform.y) {
           player.setPosition(player.x, platform.y - playerBounds.height);
@@ -337,12 +337,10 @@ export class Level extends BaseLevel {
 
       setTimeout(() => {
         this.hideMessage();
-        // Dynamically import Level2 to avoid circular dependency
-        import('./Level2').then(({ }) => {
-          const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
-          const game = new Game(canvas);
-          game.loadLevel(2);
-        });
+        // Signal level completion to the scene system
+        if ((window as any).levelCompleted) {
+          (window as any).levelCompleted(1);
+        }
       }, 2000);
     } else {
       this.showGameOverMessage();

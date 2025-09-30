@@ -15,6 +15,7 @@ export class MainMenuScene implements Scene {
   private menuItems: { text: string; action: string; y: number }[] = [];
   private selectedIndex: number = 0;
   private animationTime: number = 0;
+  private keyDownHandler: Function;
 
   constructor() {
     this.logger = Logger.getInstance();
@@ -31,13 +32,13 @@ export class MainMenuScene implements Scene {
     
     this.menuItems = [
       { text: 'START GAME', action: 'startGame', y: startY },
-      { text: 'SELECT LEVEL', action: 'levelSelect', y: startY + itemSpacing },
-      { text: 'SETTINGS', action: 'settings', y: startY + itemSpacing * 2 },
-      { text: 'CREDITS', action: 'credits', y: startY + itemSpacing * 3 }
+      { text: 'SETTINGS', action: 'settings', y: startY + itemSpacing },
+      { text: 'CREDITS', action: 'credits', y: startY + itemSpacing * 2 }
     ];
     
     // Setup input handlers
-    this.engine.getInputSystem().on('keydown', this.handleKeyDown.bind(this));
+    this.keyDownHandler = this.handleKeyDown.bind(this);
+    this.engine.getInputSystem().on('keydown', this.keyDownHandler);
     
     // Start background music
     this.engine.getAudioSystem().playMusic();
@@ -45,7 +46,7 @@ export class MainMenuScene implements Scene {
 
   public async unload(): Promise<void> {
     this.logger.info('Unloading MainMenu scene');
-    this.engine.getInputSystem().off('keydown', this.handleKeyDown.bind(this));
+    this.engine.getInputSystem().off('keydown', this.keyDownHandler);
   }
 
   public update(deltaTime: number): void {
@@ -187,9 +188,6 @@ export class MainMenuScene implements Scene {
     switch (selectedItem.action) {
       case 'startGame':
         await this.engine.getSceneManager().loadScene('Game');
-        break;
-      case 'levelSelect':
-        await this.engine.getSceneManager().loadScene('LevelSelect');
         break;
       case 'settings':
         // TODO: Implement settings scene

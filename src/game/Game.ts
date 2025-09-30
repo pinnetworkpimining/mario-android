@@ -1,13 +1,7 @@
 import { Player } from './Player';
 import { Level } from './Level';
-import { Level2 } from './Level2';
-import { Level3 } from './Level3';
-import { Level4 } from './Level4';
-import { Level5 } from './Level5';
-import { Level6 } from './Level6';
 
-import { InputManager } from './InputManager';
-import { TouchController } from './TouchController';
+import { InputSystem } from '../engine/InputSystem';
 import { Camera } from './Camera';
 import { AudioManager } from './AudioManager';
 
@@ -45,8 +39,7 @@ export class Game {
   private ctx: CanvasRenderingContext2D;
   private player: Player = new Player(100, 100);
   private level: any;
-  private inputManager: InputManager;
-  private touchController: TouchController;
+  private inputSystem: InputSystem;
   private camera: Camera;
   private audioManager: AudioManager;
   private lastTime: number = 0;
@@ -75,131 +68,106 @@ export class Game {
     
     this.logger.log(`Game dimensions: ${this.gameWidth}x${this.gameHeight}`);
     
-    this.inputManager = new InputManager();
+    this.inputSystem = new InputSystem(canvas);
     this.camera = new Camera(canvas);
     this.audioManager = new AudioManager();
-    
-    // Initialize touch controller for mobile
-    this.touchController = new TouchController(
-      this.canvas,
-      (key: string, pressed: boolean) => this.inputManager.setKeyState(key, pressed)
-    );
-    
+
     this.loadLevel(1);
-    this.setupEventListeners();
     
     this.logger.log('Game initialization complete');
   }
 
-  public loadLevel(levelNumber: number): void {
+  public async loadLevel(levelNumber: number): Promise<void> {
     this.logger.log(`Loading level ${levelNumber}`);
-    
+
     // Prevent multiple level loads
     if (this.isTransitioning) {
       this.logger.log('Level transition already in progress, ignoring request');
       return;
     }
-    
+
     // Reset game state flags
     this.gameOverShown = false;
     this.levelCompleteShown = false;
     this.isTransitioning = true;
-    
+
     this.currentLevel = levelNumber;
-    
+
     // Calculate ground position for mobile landscape
     const groundY = this.gameHeight * 0.85; // 85% down from top
     const startX = this.gameWidth * 0.1; // 10% from left edge
-    
-    switch (levelNumber) {
-      case 1:
-        this.level = new Level();
-        this.logger.log('Level 1 loaded');
-        break;
-      case 2:
-        this.level = new Level2();
-        this.logger.log('Level 2 loaded');
-        break;
-      case 3:
-        this.level = new Level3();
-        this.logger.log('Level 3 loaded');
-        break;
-      case 4:
-        this.level = new Level4();
-        this.logger.log('Level 4 loaded');
-        break;
-      case 5:
-        this.level = new Level5();
-        this.logger.log('Level 5 loaded');
-        break;
-      case 6:
-        this.level = new Level6();
-        this.logger.log('Level 6 (Interactive Enemies) loaded');
-        break;
-      default:
-        this.level = new Level();
-        this.logger.log('Default level loaded');
-    }
-    
-    // Place player at start position
-    this.player = new Player(startX, groundY - 64); // 64 = player height
-    
-    // Set camera bounds
-    this.camera.setLevelBounds(this.level.getLevelWidth(), this.level.getLevelHeight());
-    
-    // Update UI
-    this.updateUI();
-    
-    this.isTransitioning = false;
-    this.logger.log(`Level ${levelNumber} setup complete`);
-  }
 
-  private setupEventListeners(): void {
-    this.logger.log('Setting up event listeners');
-    
-    // Keyboard controls
-    document.addEventListener('keydown', (e) => {
-      if (e.code === 'Escape') {
-        this.togglePause();
-        return;
+    try {
+      switch (levelNumber) {
+        case 1:
+          this.level = new Level();
+          this.logger.log('Level 1 loaded');
+          break;
+        case 2:
+          const { Level2 } = await import('./Level2');
+          this.level = new Level2();
+          this.logger.log('Level 2 loaded');
+          break;
+        case 3:
+          const { Level3 } = await import('./Level3');
+          this.level = new Level3();
+          this.logger.log('Level 3 loaded');
+          break;
+        case 4:
+          const { Level4 } = await import('./Level4');
+          this.level = new Level4();
+          this.logger.log('Level 4 loaded');
+          break;
+        case 5:
+          const { Level5 } = await import('./Level5');
+          this.level = new Level5();
+          this.logger.log('Level 5 loaded');
+          break;
+        case 6:
+          const { Level6 } = await import('./Level6');
+          this.level = new Level6();
+          this.logger.log('Level 6 (Interactive Enemies) loaded');
+          break;
+        default:
+          this.level = new Level();
+          this.logger.log('Default level loaded');
       }
-      this.inputManager.setKeyState(e.code, true);
-    });
 
-    document.addEventListener('keyup', (e) => {
-      this.inputManager.setKeyState(e.code, false);
-    });
+      // Place player at start position
+      this.player = new Player(startX, groundY - 64); // 64 = player height
 
-    // Handle orientation changes
-    window.addEventListener('orientationchange', () => {
-      setTimeout(() => {
-        this.handleResize();
-      }, 100);
-    });
+      // Set camera bounds
+      this.camera.setLevelBounds(this.level.getLevelWidth(), this.level.getLevelHeight());
 
-    window.addEventListener('resize', () => {
-      this.handleResize();
-    });
+      // Update UI
+      this.updateUI();
+
+      this.isTransitioning = false;
+      this.logger.log(`Level ${levelNumber} setup complete`);
+    } catch (error) {
+      this.logger.log(`Error loading level ${levelNumber}: ${error}`, 'ERROR');
+      // Fallback to level 1
+      this.level = new Level();
+      this.player = new Player(startX, groundY - 64);
+      this.camera.setLevelBounds(this.level.getLevelWidth(), this.level.getLevelHeight());
+      this.updateUI();
+      this.isTransitioning = false;
+    }
   }
+
 
   private handleResize(): void {
     this.logger.log('Handling resize event');
-    
+
     this.gameWidth = window.innerWidth;
     this.gameHeight = window.innerHeight;
-    
+
     this.canvas.width = this.gameWidth * window.devicePixelRatio;
     this.canvas.height = this.gameHeight * window.devicePixelRatio;
     this.canvas.style.width = this.gameWidth + 'px';
     this.canvas.style.height = this.gameHeight + 'px';
-    
+
     this.ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-    
-    // Recreate touch controller with new dimensions
-    this.touchController = new TouchController(
-      this.canvas,
-      (key: string, pressed: boolean) => this.inputManager.setKeyState(key, pressed)
-    );
   }
 
   public start(): void {
@@ -254,7 +222,7 @@ export class Game {
 
   private update(deltaTime: number): void {
     // Update player
-    this.player.update(deltaTime, this.inputManager);
+    this.player.update(deltaTime, this.inputSystem);
     
     // Update level
     this.level.update(deltaTime);
@@ -400,10 +368,10 @@ export class Game {
     
     // Restore camera transformation
     this.camera.restore(this.ctx);
-    
+
     // Draw touch controls
-    this.touchController.render(this.ctx);
-    
+    this.inputSystem.renderTouchControls(this.ctx);
+
     // Draw pause overlay if paused
     if (this.paused) {
       this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
