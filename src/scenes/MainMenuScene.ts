@@ -162,18 +162,6 @@ export class MainMenuScene implements Scene {
       }, alpha);
     }
   }
-    renderSystem.drawText(
-      'Use ARROW KEYS or TOUCH to navigate • SPACE or TAP to select',
-      config.width / 2,
-      config.height * 0.9,
-      '18px Arial',
-      '#888888',
-      'center'
-    );
-    
-    // Render touch controls
-    this.engine.getInputSystem().renderTouchControls(renderSystem.getContext());
-  }
 
   private handleKeyDown(key: string): void {
     this.engine.getAudioSystem().playSound('menu');
