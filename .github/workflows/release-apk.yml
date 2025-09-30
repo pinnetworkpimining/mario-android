@@ -57,6 +57,8 @@ jobs:
 
       - name: Build web app (Vite)
         run: npm run build
+      - name: install terser
+        run: npm install --save-dev terser
 
       - name: Copy web assets to Android (Capacitor)
         run: npx cap sync android
