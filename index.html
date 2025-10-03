@@ -116,18 +116,7 @@
       }
       
       #ui {
-        position: fixed;
-        top: 2vh;
-        left: 2vh;
-        color: #fff;
-        font-size: 3vh;
-        text-shadow: 2px 2px 8px rgba(0,0,0,0.8);
-        background: rgba(0,0,0,0.6);
-        border-radius: 1vh;
-        padding: 1vh 2vh;
-        z-index: 10;
-        backdrop-filter: blur(10px);
-        border: 1px solid rgba(255,255,255,0.2);
+        display: none;
       }
       
       .game-message {
@@ -154,45 +143,16 @@
       }
       
       .pause-menu {
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: rgba(0,0,0,0.9);
-        padding: 5vh;
-        border-radius: 2vh;
-        z-index: 1001;
         display: none;
-        flex-direction: column;
-        align-items: center;
-        backdrop-filter: blur(10px);
-        border: 2px solid #00ffff;
       }
       
       .pause-button {
-        position: fixed;
-        top: 2vh;
-        right: 2vh;
-        background: rgba(0,0,0,0.6);
-        color: white;
-        border: 1px solid rgba(255,255,255,0.2);
-        font-size: 3vh;
-        padding: 1vh 2vh;
-        border-radius: 1vh;
-        cursor: pointer;
-        z-index: 10;
-        backdrop-filter: blur(10px);
+        display: none;
       }
     </style>
   </head>
   <body>
-    <div id="mainMenu">
-      <h1 class="menu-title">CYBER RUNNER</h1>
-      <button class="menu-button" onclick="startGame()">START GAME</button>
-      <button class="menu-button" onclick="showLevelSelect()">SELECT LEVEL</button>
-      <button class="menu-button" onclick="showSettings()">SETTINGS</button>
-      <button class="menu-button" onclick="showCredits()">CREDITS</button>
-    </div>
+
     
     <div id="levelSelectMenu" style="display: none;">
       <h1 class="menu-title">SELECT LEVEL</h1>
@@ -225,21 +185,6 @@
       <button class="menu-button" onclick="backToMainMenu()">BACK</button>
     </div>
     
-    <div id="ui" style="display: none;">
-      <div>Score: <span id="score">0</span></div>
-      <div>Lives: <span id="lives">3</span></div>
-      <div>Health: <span id="health">100</span></div>
-      <div>Level: <span id="level">1</span></div>
-    </div>
-    
-    <button class="pause-button" onclick="togglePause()" style="display: none;">⏸️</button>
-    
-    <div class="pause-menu" id="pauseMenu">
-      <h2 style="color: white; margin-bottom: 3vh;">PAUSED</h2>
-      <button class="menu-button" onclick="togglePause()">RESUME</button>
-      <button class="menu-button" onclick="restartLevel()">RESTART</button>
-      <button class="menu-button" onclick="goToMenu()">MAIN MENU</button>
-    </div>
     
     <canvas id="gameCanvas" width="1920" height="1080" style="display: none;" tabindex="0" onclick="this.focus()"></canvas>
     
@@ -248,10 +193,8 @@
       
       async function startGame() {
         document.getElementById('mainMenu').style.display = 'none';
-       document.getElementById('levelSelectMenu').style.display = 'none';
+        document.getElementById('levelSelectMenu').style.display = 'none';
         document.getElementById('gameCanvas').style.display = 'block';
-        document.getElementById('ui').style.display = 'block';
-        document.querySelector('.pause-button').style.display = 'block';
 
         // Game is already initialized by main.ts, load the Game scene
         if (window.gameEngine) {
@@ -266,8 +209,6 @@
        document.getElementById('mainMenu').style.display = 'none';
        document.getElementById('levelSelectMenu').style.display = 'none';
        document.getElementById('gameCanvas').style.display = 'block';
-       document.getElementById('ui').style.display = 'block';
-       document.querySelector('.pause-button').style.display = 'block';
 
        // Game is already initialized by main.ts, load the Game scene
        if (window.gameEngine) {
@@ -297,30 +238,13 @@
         alert('Made with ❤️ for mobile gaming');
       }
       
-      function togglePause() {
-        const pauseMenu = document.getElementById('pauseMenu');
-        if (pauseMenu.style.display === 'flex') {
-          pauseMenu.style.display = 'none';
-          if (game) game.resume();
-        } else {
-          pauseMenu.style.display = 'flex';
-          if (game) game.pause();
+      async function goToMenu() {
+        if (window.gameEngine) {
+          await window.gameEngine.getSceneManager().loadScene('MainMenu');
         }
       }
-      
-      function restartLevel() {
-        togglePause();
-        if (game) game.restart();
-      }
-      
-      function goToMenu() {
-        document.getElementById('mainMenu').style.display = 'flex';
-        document.getElementById('gameCanvas').style.display = 'none';
-        document.getElementById('ui').style.display = 'none';
-        document.querySelector('.pause-button').style.display = 'none';
-        togglePause();
-        if (game) game.stop();
-      }
+
+      window.goToMenu = goToMenu;
       
       // Prevent context menu and zoom
       document.addEventListener('contextmenu', e => e.preventDefault());

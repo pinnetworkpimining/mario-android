@@ -152,11 +152,10 @@ export class InputSystem {
     for (const touch of Array.from(event.touches)) {
       this.inputState.touches.set(touch.identifier, touch);
 
-      const rect = this.canvas.getBoundingClientRect();
-      const x = (touch.clientX - rect.left) / this.dpr;
-      const y = (touch.clientY - rect.top) / this.dpr;
+      const x = touch.clientX;
+      const y = touch.clientY;
 
-      console.log(`Touch at (${x}, ${y}), canvas rect: ${rect.left}, ${rect.top}, ${rect.width}x${rect.height}`);
+      console.log(`Touch at (${x}, ${y}), window: ${window.innerWidth}x${window.innerHeight}`);
 
       // Check touch buttons
       for (const button of this.touchButtons) {
@@ -188,9 +187,8 @@ export class InputSystem {
     for (const touch of Array.from(event.touches)) {
       this.inputState.touches.set(touch.identifier, touch);
 
-      const rect = this.canvas.getBoundingClientRect();
-      const x = (touch.clientX - rect.left) / this.dpr;
-      const y = (touch.clientY - rect.top) / this.dpr;
+      const x = touch.clientX;
+      const y = touch.clientY;
 
       for (const button of this.touchButtons) {
         if (this.isPointInButton(x, y, button) && !button.pressed) {
@@ -216,9 +214,8 @@ export class InputSystem {
       let stillTouched = false;
 
       for (const touch of Array.from(event.touches)) {
-        const rect = this.canvas.getBoundingClientRect();
-        const x = (touch.clientX - rect.left) / this.dpr;
-        const y = (touch.clientY - rect.top) / this.dpr;
+        const x = touch.clientX;
+        const y = touch.clientY;
 
         if (this.isPointInButton(x, y, button)) {
           stillTouched = true;
@@ -313,11 +310,10 @@ export class InputSystem {
     ctx.save();
 
     for (const button of this.touchButtons) {
-      // Adjust button positions for DPR
-      const x = button.x / this.dpr;
-      const y = button.y / this.dpr;
-      const width = button.width / this.dpr;
-      const height = button.height / this.dpr;
+      const x = button.x;
+      const y = button.y;
+      const width = button.width;
+      const height = button.height;
 
       // Button background
       ctx.fillStyle = button.pressed ? 'rgba(0, 255, 255, 0.9)' : 'rgba(0, 255, 255, 0.6)';
