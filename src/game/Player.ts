@@ -1,4 +1,3 @@
-import { InputManager } from './InputManager';
 import { InputSystem } from '../engine/InputSystem';
 import { AudioManager } from './AudioManager';
 
@@ -38,7 +37,7 @@ export class Player {
   }
 
   public update(deltaTime: number, inputSystem: InputSystem): void {
-    const dt = deltaTime / 1000; // Convert to seconds
+    const dt = deltaTime;
 
     // Update invulnerability
     if (this.invulnerable) {

@@ -232,17 +232,21 @@ export class GameScene implements Scene {
   }
 
   private completeLevel(): void {
+    if (this.gameState === 'levelComplete') return;
+
+    this.gameState = 'levelComplete';
     this.logger.info(`Level ${this.levelNumber} completed`);
     this.engine.getAudioSystem().playSound('levelcomplete');
     this.score += 1000;
-    
+
     if (this.levelNumber < 6) {
       this.showMessage(`Level ${this.levelNumber} Complete!`, 3000);
       setTimeout(async () => {
+        this.gameState = 'playing';
         await this.loadLevel(this.levelNumber + 1);
       }, 3000);
     } else {
-      this.showMessage('🎉 ALL LEVELS COMPLETED! 🎉', 5000);
+      this.showMessage('ALL LEVELS COMPLETED', 5000);
       setTimeout(async () => {
         await this.engine.getSceneManager().loadScene('MainMenu');
       }, 5000);
@@ -342,11 +346,21 @@ export class GameScene implements Scene {
   }
 
   public levelCompleted(levelNumber: number): void {
+    if (this.gameState === 'levelComplete') return;
+
+    this.gameState = 'levelComplete';
     this.logger.info(`Level ${levelNumber} completed, loading next level`);
+    this.engine.getAudioSystem().playSound('levelcomplete');
+    this.score += 1000;
+
     if (levelNumber < 6) {
-      this.loadLevel(levelNumber + 1);
+      this.showMessage(`Level ${levelNumber} Complete!`, 3000);
+      setTimeout(async () => {
+        this.gameState = 'playing';
+        await this.loadLevel(levelNumber + 1);
+      }, 3000);
     } else {
-      this.showMessage('🎉 ALL LEVELS COMPLETED! 🎉', 5000);
+      this.showMessage('ALL LEVELS COMPLETED', 5000);
       setTimeout(async () => {
         await this.engine.getSceneManager().loadScene('MainMenu');
       }, 5000);

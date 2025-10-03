@@ -3,7 +3,7 @@ import { Level } from './Level';
 
 import { InputSystem } from '../engine/InputSystem';
 import { Camera } from './Camera';
-import { AudioManager } from './AudioManager';
+import { AudioSystem } from '../engine/AudioSystem';
 
 // Game state logging utility
 class GameLogger {
@@ -41,7 +41,7 @@ export class Game {
   private level: any;
   private inputSystem: InputSystem;
   private camera: Camera;
-  private audioManager: AudioManager;
+  private audioManager: AudioSystem;
   private lastTime: number = 0;
   private score: number = 0;
   private lives: number = 3;
@@ -70,7 +70,7 @@ export class Game {
     
     this.inputSystem = new InputSystem(canvas);
     this.camera = new Camera(canvas);
-    this.audioManager = new AudioManager();
+    this.audioManager = new AudioSystem();
 
     this.loadLevel(1);
     
@@ -174,7 +174,7 @@ export class Game {
     this.logger.log('Starting game');
     this.gameRunning = true;
     this.paused = false;
-    this.audioManager.playBackgroundMusic();
+    this.audioManager.playMusic('bgmusic');
     this.gameLoop(0);
   }
 
@@ -191,7 +191,7 @@ export class Game {
   public stop(): void {
     this.logger.log('Game stopped');
     this.gameRunning = false;
-    this.audioManager.stopBackgroundMusic();
+    this.audioManager.stopMusic();
   }
 
   public restart(): void {
@@ -210,8 +210,9 @@ export class Game {
 
     const deltaTime = currentTime - this.lastTime;
     this.lastTime = currentTime;
-
     if (!this.paused) {
+          console.log(`Delta time: ${deltaTime}ms`);
+
       this.update(deltaTime);
     }
     
@@ -307,7 +308,7 @@ export class Game {
     
     this.logger.log('Game over');
     this.audioManager.playSound('gameover');
-    this.audioManager.stopBackgroundMusic();
+    this.audioManager.stopMusic();
     
     this.showMessage(`Game Over! Final Score: ${this.score}`, () => {
       this.goToMenu();
@@ -390,7 +391,7 @@ export class Game {
     this.audioManager.playSound('coin');
   }
 
-  public getAudioManager(): AudioManager {
+  public getAudioManager(): AudioSystem {
     return this.audioManager;
   }
 
