@@ -90,9 +90,9 @@ export class Level extends BaseLevel {
     const width = window.innerWidth;
     const height = window.innerHeight;
     const groundY = height - Math.round(height * 0.15);
-    
+
     // Place finish flag at the end of the level - mobile optimized
-    this.finishFlag = new FinishFlag(width * 5.5, groundY - 60);
+    this.finishFlag = new FinishFlag(width * 3.8, groundY - 60);
   }
 
   public update(deltaTime: number): void {
@@ -322,7 +322,7 @@ export class Level extends BaseLevel {
       ) {
         this.finishFlag.collect();
         this.particleSystem.addExplosion(flagBounds.x + flagBounds.width/2, flagBounds.y + flagBounds.height/2, '#FFD700');
-        this.endGame(true); // Win condition
+        this.levelCompleted = true;
       }
     }
   }

@@ -1,11 +1,18 @@
 import { Player } from './Player';
 
 export abstract class BaseLevel {
-  protected gameRunning: boolean = true; // Changed from private to protected
+  protected gameRunning: boolean = true;
+  protected levelCompleted: boolean = false;
 
   abstract update(deltaTime: number): void;
   abstract render(ctx: CanvasRenderingContext2D): void;
   abstract checkCollisions(player: Player): void;
+  abstract getLevelWidth(): number;
+  abstract getLevelHeight(): number;
+
+  public isCompleted(): boolean {
+    return this.levelCompleted;
+  }
 
   public endGame(won: boolean): void {
     this.gameRunning = false;

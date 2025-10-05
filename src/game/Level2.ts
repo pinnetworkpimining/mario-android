@@ -213,6 +213,23 @@ export class Level2 extends Level {
         player.loseLife();
       }
     });
+
+    // Check collision with finish flag (inherited from Level)
+    if (this.finishFlag && !this.finishFlag.isCollected()) {
+      const flagBounds = this.finishFlag.getBounds();
+      if (
+        playerBounds.x < flagBounds.x + flagBounds.width &&
+        playerBounds.x + playerBounds.width > flagBounds.x &&
+        playerBounds.y < flagBounds.y + flagBounds.height &&
+        playerBounds.y + playerBounds.height > flagBounds.y
+      ) {
+        this.finishFlag.collect();
+        if (this.particleSystem) {
+          this.particleSystem.addExplosion(flagBounds.x + flagBounds.width/2, flagBounds.y + flagBounds.height/2, '#FFD700');
+        }
+        this.levelCompleted = true;
+      }
+    }
   }
 
   public endGame(won: boolean): void {
