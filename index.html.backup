@@ -3,12 +3,11 @@
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover, interactive-widget=resizes-content" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-fullscreen">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="theme-color" content="#1a1a2e">
-    <meta name="format-detection" content="telephone=no">
     <title>Cyber Runner</title>
     <style>
       * {
@@ -19,44 +18,37 @@
         user-select: none;
         -webkit-user-select: none;
         -webkit-touch-callout: none;
-        -webkit-tap-highlight-color: transparent;
       }
       
       html, body {
-        width: 100%;
-        height: 100%;
-        max-width: 100vw;
-        max-height: 100vh;
+        width: 100vw;
+        height: 100vh;
         overflow: hidden;
         font-family: 'Arial', sans-serif;
         background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
         position: fixed;
         top: 0;
         left: 0;
-        right: 0;
-        bottom: 0;
       }
       
       /* Force landscape orientation */
       @media (orientation: portrait) {
         body::before {
-          content: "📱 Please rotate your device to landscape mode";
+          content: "Please rotate your device to landscape mode";
           position: fixed;
           top: 50%;
           left: 50%;
           transform: translate(-50%, -50%);
           color: white;
-          font-size: clamp(18px, 6vw, 32px);
+          font-size: 6vw;
           text-align: center;
           z-index: 10000;
           background: rgba(0,0,0,0.9);
-          padding: clamp(20px, 5vw, 40px);
-          border-radius: clamp(10px, 2vw, 20px);
-          max-width: 80vw;
-          border: 2px solid #00ffff;
+          padding: 5vw;
+          border-radius: 2vw;
         }
         
-        #gameCanvas, #mainMenu, #levelSelectMenu {
+        #gameCanvas, #mainMenu {
           display: none !important;
         }
       }
@@ -85,21 +77,17 @@
         align-items: center;
         z-index: 100;
         color: white;
-        padding: 2vh 2vw;
       }
       
       .menu-title {
-        font-size: clamp(28px, 7vh, 80px);
+        font-size: 8vh;
         font-weight: bold;
-        margin-bottom: clamp(20px, 4vh, 50px);
+        margin-bottom: 5vh;
         text-shadow: 0 0 20px #00ffff;
         background: linear-gradient(45deg, #00ffff, #ff00ff);
         -webkit-background-clip: text;
         -webkit-text-fill-color: transparent;
-        background-clip: text;
         animation: glow 2s ease-in-out infinite alternate;
-        padding: 0 2vw;
-        text-align: center;
       }
       
       @keyframes glow {
@@ -111,17 +99,15 @@
         background: linear-gradient(135deg, #00ffff 0%, #ff00ff 100%);
         border: none;
         color: white;
-        font-size: clamp(16px, 3.5vh, 40px);
+        font-size: 4vh;
         font-weight: bold;
-        padding: clamp(12px, 2vh, 28px) clamp(24px, 5vh, 70px);
-        margin: clamp(6px, 1vh, 18px);
-        border-radius: clamp(8px, 1.5vh, 24px);
+        padding: 2vh 6vh;
+        margin: 1vh;
+        border-radius: 2vh;
         cursor: pointer;
         transition: all 0.3s ease;
         box-shadow: 0 4px 15px rgba(0,255,255,0.3);
-        min-width: clamp(180px, 35vh, 350px);
-        touch-action: manipulation;
-        -webkit-tap-highlight-color: transparent;
+        min-width: 30vh;
       }
       
       .menu-button:hover, .menu-button:active {
@@ -139,18 +125,16 @@
         left: 50%;
         transform: translate(-50%, -50%);
         color: #fff;
-        font-size: clamp(18px, 4vh, 52px);
+        font-size: 5vh;
         font-weight: bold;
         text-align: center;
         background: linear-gradient(135deg, rgba(0,0,0,0.95), rgba(26,26,46,0.95));
-        padding: clamp(20px, 3vh, 50px) clamp(30px, 6vh, 90px);
-        border-radius: clamp(10px, 2vh, 28px);
+        padding: 4vh 8vh;
+        border-radius: 2vh;
         z-index: 1000;
         box-shadow: 0 0 30px rgba(0,255,255,0.5);
         border: 2px solid #00ffff;
         animation: fadeIn 0.5s ease-in;
-        max-width: 90vw;
-        word-wrap: break-word;
       }
       
       @keyframes fadeIn {
@@ -164,130 +148,6 @@
       
       .pause-button {
         display: none;
-      }
-
-      #levelSelectMenu {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw;
-        height: 100vh;
-        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
-        display: none;
-        flex-direction: column;
-        justify-content: center;
-        align-items: center;
-        z-index: 100;
-        color: white;
-        padding: 2vh 2vw;
-        overflow-y: auto;
-      }
-
-      .level-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(clamp(120px, 20vh, 200px), 1fr));
-        gap: clamp(10px, 2vh, 20px);
-        width: 90%;
-        max-width: 800px;
-        margin: clamp(15px, 3vh, 30px) 0;
-      }
-
-      .level-button {
-        background: linear-gradient(135deg, rgba(0,255,255,0.2), rgba(255,0,255,0.2));
-        border: 2px solid #00ffff;
-        color: white;
-        padding: clamp(15px, 3vh, 30px);
-        border-radius: clamp(8px, 1.5vh, 20px);
-        cursor: pointer;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 15px rgba(0,255,255,0.2);
-        touch-action: manipulation;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-      }
-
-      .level-button:hover, .level-button:active {
-        transform: scale(1.05);
-        background: linear-gradient(135deg, rgba(0,255,255,0.4), rgba(255,0,255,0.4));
-        box-shadow: 0 6px 20px rgba(255,0,255,0.4);
-      }
-
-      .level-number {
-        font-size: clamp(32px, 6vh, 72px);
-        font-weight: bold;
-        margin-bottom: clamp(5px, 1vh, 10px);
-      }
-
-      .level-name {
-        font-size: clamp(12px, 2vh, 20px);
-        opacity: 0.9;
-      }
-
-      /* Samsung S10 and similar high-DPI devices (landscape ~760x360 CSS pixels) */
-      @media screen and (min-width: 700px) and (max-width: 900px) and (orientation: landscape) {
-        .menu-title {
-          font-size: clamp(28px, 6vh, 56px);
-          margin-bottom: clamp(15px, 3vh, 40px);
-        }
-        
-        .menu-button {
-          font-size: clamp(16px, 3vh, 32px);
-          padding: clamp(10px, 1.5vh, 22px) clamp(25px, 4vh, 55px);
-          min-width: clamp(160px, 30vh, 280px);
-        }
-        
-        .game-message {
-          font-size: clamp(16px, 3.5vh, 40px);
-          padding: clamp(18px, 2.5vh, 40px) clamp(25px, 5vh, 70px);
-        }
-
-        .level-grid {
-          grid-template-columns: repeat(3, 1fr);
-          gap: clamp(12px, 2vh, 18px);
-        }
-      }
-
-      /* Extra small landscape devices (height < 400px) */
-      @media screen and (max-height: 400px) and (orientation: landscape) {
-        .menu-title {
-          font-size: clamp(20px, 5vh, 42px);
-          margin-bottom: clamp(10px, 2vh, 25px);
-        }
-        
-        .menu-button {
-          font-size: clamp(14px, 2.5vh, 26px);
-          padding: clamp(8px, 1.2vh, 18px) clamp(20px, 3.5vh, 45px);
-          margin: clamp(4px, 0.8vh, 12px);
-          min-width: clamp(140px, 25vh, 240px);
-        }
-        
-        .game-message {
-          font-size: clamp(14px, 3vh, 32px);
-          padding: clamp(15px, 2vh, 35px) clamp(20px, 4vh, 60px);
-        }
-
-        .level-grid {
-          grid-template-columns: repeat(3, 1fr);
-          gap: clamp(8px, 1.5vh, 15px);
-        }
-
-        .level-number {
-          font-size: clamp(24px, 4vh, 48px);
-        }
-
-        .level-name {
-          font-size: clamp(10px, 1.5vh, 16px);
-        }
-      }
-
-      /* Large landscape displays */
-      @media screen and (min-width: 1200px) and (orientation: landscape) {
-        .level-grid {
-          grid-template-columns: repeat(3, 1fr);
-          max-width: 1000px;
-        }
       }
     </style>
   </head>
@@ -336,9 +196,11 @@
         document.getElementById('levelSelectMenu').style.display = 'none';
         document.getElementById('gameCanvas').style.display = 'block';
 
+        // Game is already initialized by main.ts, load the Game scene
         if (window.gameEngine) {
           await window.gameEngine.getSceneManager().loadScene('Game');
           window.gameEngine.start();
+          // Focus the canvas for keyboard input
           document.getElementById('gameCanvas').focus();
         }
       }
@@ -348,9 +210,11 @@
        document.getElementById('levelSelectMenu').style.display = 'none';
        document.getElementById('gameCanvas').style.display = 'block';
 
+       // Game is already initialized by main.ts, load the Game scene
        if (window.gameEngine) {
          await window.gameEngine.getSceneManager().loadScene('Game');
          window.gameEngine.start();
+         // Focus the canvas for keyboard input
          document.getElementById('gameCanvas').focus();
        }
      }
@@ -363,6 +227,7 @@
      function backToMainMenu() {
        document.getElementById('levelSelectMenu').style.display = 'none';
        document.getElementById('mainMenu').style.display = 'flex';
+       document.getElementById('levelSelectMenu').style.display = 'none';
       }
       
       function showSettings() {
@@ -381,20 +246,13 @@
 
       window.goToMenu = goToMenu;
       
+      // Prevent context menu and zoom
       document.addEventListener('contextmenu', e => e.preventDefault());
       document.addEventListener('touchstart', e => {
         if (e.touches.length > 1) e.preventDefault();
       }, { passive: false });
       
-      let lastTouchEnd = 0;
-      document.addEventListener('touchend', e => {
-        const now = Date.now();
-        if (now - lastTouchEnd <= 300) {
-          e.preventDefault();
-        }
-        lastTouchEnd = now;
-      }, false);
-      
+      // Lock orientation to landscape
       if (screen.orientation && screen.orientation.lock) {
         screen.orientation.lock('landscape').catch(() => {});
       }
