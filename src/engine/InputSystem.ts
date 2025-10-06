@@ -69,7 +69,7 @@ export class InputSystem {
   }
 
   private setupTouchButtons(): void {
-    const buttonSize = Math.min(window.innerWidth, window.innerHeight) * 0.08;
+    const buttonSize = Math.min(window.innerWidth, window.innerHeight) * 0.2;
     const margin = 20;
     const bottomMargin = 30;
 
