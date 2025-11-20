@@ -19,7 +19,7 @@ export class ParticleSystem {
     for (let i = 0; i < 15; i++) {
       const angle = (Math.PI * 2 * i) / 15;
       const speed = 150 + Math.random() * 150;
-      
+
       this.particles.push({
         x: x,
         y: y,
@@ -86,12 +86,102 @@ export class ParticleSystem {
     }
   }
 
+  /**
+   * Add coin collection sparkle effect
+   */
+  public addCoinSparkle(x: number, y: number): void {
+    for (let i = 0; i < 12; i++) {
+      const angle = (Math.PI * 2 * i) / 12;
+      const speed = 100 + Math.random() * 50;
+
+      this.particles.push({
+        x: x,
+        y: y,
+        velocityX: Math.cos(angle) * speed,
+        velocityY: Math.sin(angle) * speed - 50,
+        life: 600,
+        maxLife: 600,
+        color: '#FFD700',
+        size: 3 + Math.random() * 2,
+        type: 'sparkle',
+        rotation: Math.random() * Math.PI * 2,
+        rotationSpeed: (Math.random() - 0.5) * 0.4
+      });
+    }
+  }
+
+  /**
+   * Add jump dust effect
+   */
+  public addJumpDust(x: number, y: number): void {
+    for (let i = 0; i < 6; i++) {
+      this.particles.push({
+        x: x + Math.random() * 30 - 15,
+        y: y,
+        velocityX: Math.random() * 80 - 40,
+        velocityY: -Math.random() * 40 - 20,
+        life: 400,
+        maxLife: 400,
+        color: '#CCCCCC',
+        size: 3 + Math.random() * 2,
+        type: 'smoke'
+      });
+    }
+  }
+
+  /**
+   * Add landing impact effect
+   */
+  public addLandingImpact(x: number, y: number): void {
+    for (let i = 0; i < 8; i++) {
+      const angle = Math.PI + (Math.random() - 0.5) * Math.PI;
+      const speed = 80 + Math.random() * 60;
+
+      this.particles.push({
+        x: x,
+        y: y,
+        velocityX: Math.cos(angle) * speed,
+        velocityY: Math.sin(angle) * speed,
+        life: 500,
+        maxLife: 500,
+        color: '#AAAAAA',
+        size: 2 + Math.random() * 2,
+        type: 'smoke'
+      });
+    }
+  }
+
+  /**
+   * Add power-up collection effect
+   */
+  public addPowerUpEffect(x: number, y: number, color: string = '#FF00FF'): void {
+    for (let i = 0; i < 20; i++) {
+      const angle = (Math.PI * 2 * i) / 20;
+      const speed = 120 + Math.random() * 100;
+
+      this.particles.push({
+        x: x,
+        y: y,
+        velocityX: Math.cos(angle) * speed,
+        velocityY: Math.sin(angle) * speed,
+        life: 1000,
+        maxLife: 1000,
+        color: color,
+        size: 4 + Math.random() * 3,
+        type: 'sparkle',
+        rotation: Math.random() * Math.PI * 2,
+        rotationSpeed: (Math.random() - 0.5) * 0.5
+      });
+    }
+  }
+
+
   public update(deltaTime: number): void {
     const dt = deltaTime / 1000;
 
     this.particles = this.particles.filter(particle => {
       particle.life -= deltaTime;
-      
+
       if (particle.life <= 0) {
         return false;
       }
@@ -99,7 +189,7 @@ export class ParticleSystem {
       // Update position
       particle.x += particle.velocityX * dt;
       particle.y += particle.velocityY * dt;
-      
+
       // Update rotation
       if (particle.rotation !== undefined && particle.rotationSpeed !== undefined) {
         particle.rotation += particle.rotationSpeed;
@@ -133,18 +223,18 @@ export class ParticleSystem {
 
   public render(ctx: CanvasRenderingContext2D): void {
     ctx.save();
-    
+
     this.particles.forEach(particle => {
       const alpha = particle.life / particle.maxLife;
       ctx.globalAlpha = alpha;
-      
+
       ctx.save();
       ctx.translate(particle.x, particle.y);
-      
+
       if (particle.rotation !== undefined) {
         ctx.rotate(particle.rotation);
       }
-      
+
       // Render based on particle type
       switch (particle.type) {
         case 'explosion':
@@ -155,7 +245,7 @@ export class ParticleSystem {
           ctx.arc(0, 0, particle.size, 0, Math.PI * 2);
           ctx.fill();
           break;
-          
+
         case 'trail':
           ctx.fillStyle = particle.color;
           ctx.shadowColor = particle.color;
@@ -164,7 +254,7 @@ export class ParticleSystem {
           ctx.arc(0, 0, particle.size, 0, Math.PI * 2);
           ctx.fill();
           break;
-          
+
         case 'sparkle':
           ctx.fillStyle = particle.color;
           ctx.shadowColor = particle.color;
@@ -172,7 +262,7 @@ export class ParticleSystem {
           // Draw star shape
           this.drawStar(ctx, 0, 0, 5, particle.size, particle.size * 0.5);
           break;
-          
+
         case 'smoke':
           ctx.fillStyle = particle.color;
           ctx.globalAlpha = alpha * 0.6;
@@ -181,10 +271,10 @@ export class ParticleSystem {
           ctx.fill();
           break;
       }
-      
+
       ctx.restore();
     });
-    
+
     ctx.restore();
   }
 

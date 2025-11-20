@@ -11,6 +11,7 @@ import { PhysicsSystem } from './PhysicsSystem';
 import { SceneManager } from './SceneManager';
 import { AssetManager } from './AssetManager';
 import { ConfigManager } from './ConfigManager';
+import { ScreenShake } from './ScreenShake';
 
 export interface GameConfig {
   width: number;
@@ -34,6 +35,7 @@ export class GameEngine {
   private physicsSystem: PhysicsSystem;
   private sceneManager: SceneManager;
   private assetManager: AssetManager;
+  private screenShake: ScreenShake;
 
   // Game Loop
   private isRunning: boolean = false;
@@ -72,6 +74,7 @@ export class GameEngine {
       this.renderSystem = new RenderSystem(this.ctx, this.config);
       this.physicsSystem = new PhysicsSystem();
       this.sceneManager = new SceneManager(this);
+      this.screenShake = new ScreenShake();
 
       this.logger.info('All systems initialized successfully');
     } catch (error) {
@@ -146,6 +149,7 @@ export class GameEngine {
     this.inputSystem.update(deltaTime);
     this.physicsSystem.update(deltaTime);
     this.sceneManager.update(deltaTime);
+    this.screenShake.update(deltaTime * 1000); // Convert to milliseconds
     // this.audioSystem.update(deltaTime); // AudioSystem no longer needs update
   }
 
@@ -153,8 +157,14 @@ export class GameEngine {
     // Clear canvas
     this.renderSystem.clear();
 
+    // Apply screen shake
+    this.screenShake.apply(this.ctx);
+
     // Render current scene
     this.sceneManager.render(this.renderSystem);
+
+    // Reset screen shake
+    this.screenShake.reset(this.ctx);
 
     // Render debug info if enabled
     if (this.config.debug) {
@@ -185,6 +195,7 @@ export class GameEngine {
   public getPhysicsSystem(): PhysicsSystem { return this.physicsSystem; }
   public getSceneManager(): SceneManager { return this.sceneManager; }
   public getAssetManager(): AssetManager { return this.assetManager; }
+  public getScreenShake(): ScreenShake { return this.screenShake; }
   public getConfig(): GameConfig { return this.config; }
   public getDeltaTime(): number { return this.deltaTime; }
   public getFPS(): number { return this.fps; }
