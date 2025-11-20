@@ -13,75 +13,68 @@ export class Level6 extends Level2 {
 
   constructor() {
     super();
-    this.createLevel();
-    this.spawnEnemies();
+    this.spawnInteractiveEnemies();
   }
 
   protected createLevel(): void {
     const width = window.innerWidth;
     const height = window.innerHeight;
-    
+
     this.levelWidth = width * 12; // Longest level yet
     this.levelHeight = height;
-    
+
     // Ground platform
     const groundHeight = Math.round(height * 0.15);
     this.platforms.push({ x: 0, y: height - groundHeight, width: this.levelWidth, height: groundHeight });
 
     // Interactive enemy level - strategic platform placement
     const platformHeight = Math.max(25, height * 0.03);
-    
+
     // Section 1 - Introduction to interactive enemies
     this.platforms.push({ x: width * 0.3, y: height * 0.7, width: width * 0.15, height: platformHeight });
     this.platforms.push({ x: width * 0.6, y: height * 0.6, width: width * 0.12, height: platformHeight });
     this.platforms.push({ x: width * 0.9, y: height * 0.5, width: width * 0.12, height: platformHeight });
-    
+
     // Section 2 - Elevated combat platforms
     this.platforms.push({ x: width * 1.4, y: height * 0.65, width: width * 0.1, height: platformHeight });
     this.platforms.push({ x: width * 1.7, y: height * 0.55, width: width * 0.1, height: platformHeight });
     this.platforms.push({ x: width * 2.0, y: height * 0.45, width: width * 0.1, height: platformHeight });
     this.platforms.push({ x: width * 2.3, y: height * 0.35, width: width * 0.1, height: platformHeight });
-    
+
     // Section 3 - Multi-level combat arena
     this.platforms.push({ x: width * 2.8, y: height * 0.6, width: width * 0.08, height: platformHeight });
     this.platforms.push({ x: width * 3.1, y: height * 0.5, width: width * 0.08, height: platformHeight });
     this.platforms.push({ x: width * 3.4, y: height * 0.4, width: width * 0.08, height: platformHeight });
     this.platforms.push({ x: width * 3.7, y: height * 0.3, width: width * 0.08, height: platformHeight });
     this.platforms.push({ x: width * 4.0, y: height * 0.2, width: width * 0.08, height: platformHeight });
-    
+
     // Section 4 - Sniper positions
     this.platforms.push({ x: width * 4.5, y: height * 0.7, width: width * 0.06, height: platformHeight });
     this.platforms.push({ x: width * 4.8, y: height * 0.6, width: width * 0.06, height: platformHeight });
     this.platforms.push({ x: width * 5.1, y: height * 0.5, width: width * 0.06, height: platformHeight });
     this.platforms.push({ x: width * 5.4, y: height * 0.4, width: width * 0.06, height: platformHeight });
-    
+
     // Section 5 - Final gauntlet
     this.platforms.push({ x: width * 6.0, y: height * 0.65, width: width * 0.1, height: platformHeight });
     this.platforms.push({ x: width * 6.3, y: height * 0.55, width: width * 0.1, height: platformHeight });
     this.platforms.push({ x: width * 6.6, y: height * 0.45, width: width * 0.1, height: platformHeight });
     this.platforms.push({ x: width * 6.9, y: height * 0.35, width: width * 0.1, height: platformHeight });
-    
+
     // Section 6 - Boss approach
     this.platforms.push({ x: width * 7.5, y: height * 0.6, width: width * 0.12, height: platformHeight });
     this.platforms.push({ x: width * 8.0, y: height * 0.5, width: width * 0.12, height: platformHeight });
     this.platforms.push({ x: width * 8.5, y: height * 0.4, width: width * 0.15, height: platformHeight });
-    
+
     // Final platforms
     this.platforms.push({ x: width * 9.2, y: height * 0.55, width: width * 0.2, height: platformHeight });
     this.platforms.push({ x: width * 10.0, y: height * 0.45, width: width * 0.25, height: platformHeight });
-  }
-
-  protected spawnEnemies(): void {
-    this.spawnTurtles();
-    this.spawnFlyingEnemies();
-    this.spawnInteractiveEnemies();
   }
 
   protected spawnInteractiveEnemies(): void {
     const width = window.innerWidth;
     const height = window.innerHeight;
     const groundY = height - Math.round(height * 0.15) - 64;
-    
+
     // Ground-based interactive enemies
     this.interactiveEnemies.push(new InteractiveEnemy(width * 0.8, groundY, 'SHOOTER'));
     this.interactiveEnemies.push(new InteractiveEnemy(width * 1.8, groundY, 'BOMBER'));
@@ -90,7 +83,7 @@ export class Level6 extends Level2 {
     this.interactiveEnemies.push(new InteractiveEnemy(width * 5.5, groundY, 'BOMBER'));
     this.interactiveEnemies.push(new InteractiveEnemy(width * 7.0, groundY, 'SHOOTER'));
     this.interactiveEnemies.push(new InteractiveEnemy(width * 8.8, groundY, 'SNIPER'));
-    
+
     // Platform-based interactive enemies
     this.interactiveEnemies.push(new InteractiveEnemy(width * 1.45, height * 0.62, 'SHOOTER'));
     this.interactiveEnemies.push(new InteractiveEnemy(width * 2.35, height * 0.32, 'SNIPER'));
@@ -103,7 +96,7 @@ export class Level6 extends Level2 {
     const width = window.innerWidth;
     const height = window.innerHeight;
     const groundY = height - Math.round(height * 0.15) - 64;
-    
+
     // Regular turtles mixed with interactive enemies
     this.turtles.push(new Turtle(width * 0.5, groundY));
     this.turtles.push(new Turtle(width * 1.2, groundY));
@@ -118,7 +111,7 @@ export class Level6 extends Level2 {
   protected spawnFlyingEnemies(): void {
     const width = window.innerWidth;
     const height = window.innerHeight;
-    
+
     // Flying enemies to add aerial threat
     this.flyingEnemies.push(new FlyingEnemy(width * 0.7, height * 0.4));
     this.flyingEnemies.push(new FlyingEnemy(width * 1.5, height * 0.3));
@@ -133,7 +126,7 @@ export class Level6 extends Level2 {
   protected spawnPowerUps(): void {
     const width = window.innerWidth;
     const height = window.innerHeight;
-    
+
     // Strategic power-up placement for survival
     this.powerUps.push(new PowerUp(width * 0.4, height * 0.65, PowerUpType.HEALTH));
     this.powerUps.push(new PowerUp(width * 1.0, height * 0.45, PowerUpType.SHIELD));
@@ -152,53 +145,55 @@ export class Level6 extends Level2 {
     const width = window.innerWidth;
     const height = window.innerHeight;
     const groundY = height - Math.round(height * 0.15);
-    
+
     this.finishFlag = new FinishFlag(width * 11.5, groundY - 60);
   }
 
   public update(deltaTime: number): void {
     super.update(deltaTime);
-    
+
     // Update interactive enemies
     this.interactiveEnemies.forEach(enemy => enemy.update(deltaTime));
-    
+
     // Update projectiles
     this.projectiles = this.projectiles.filter(projectile => {
       projectile.update(deltaTime);
       return !projectile.shouldRemove();
     });
-    
+
     // Check if interactive enemies should shoot
-    this.interactiveEnemies.forEach(enemy => {
-      if (enemy.shouldShoot()) {
-        const projectile = enemy.shoot();
-        if (projectile) {
-          this.projectiles.push(projectile);
+    if (this.player) {
+      this.interactiveEnemies.forEach(enemy => {
+        if (enemy.shouldShoot()) {
+          const projectile = enemy.shoot(this.player!.x, this.player!.y);
+          if (projectile) {
+            this.projectiles.push(projectile);
+          }
         }
-      }
-    });
+      });
+    }
   }
 
   public render(ctx: CanvasRenderingContext2D): void {
     super.render(ctx);
-    
+
     // Render interactive enemies
     this.interactiveEnemies.forEach(enemy => enemy.render(ctx));
-    
+
     // Render projectiles
     this.projectiles.forEach(projectile => projectile.render(ctx));
   }
 
   public checkCollisions(player: Player): void {
     super.checkCollisions(player);
-    
+
     // Check collisions with interactive enemies
     this.interactiveEnemies = this.interactiveEnemies.filter(enemy => {
       if (enemy.isDefeated()) return false;
-      
+
       const enemyBounds = enemy.getBounds();
       const playerBounds = player.getBounds();
-      
+
       if (
         playerBounds.x < enemyBounds.x + enemyBounds.width &&
         playerBounds.x + playerBounds.width > enemyBounds.x &&
@@ -209,21 +204,21 @@ export class Level6 extends Level2 {
           // Player defeats enemy by jumping on it
           enemy.takeDamage();
           player.setVelocityY(-200);
-          this.particleSystem.addExplosion(enemyBounds.x + enemyBounds.width/2, enemyBounds.y + enemyBounds.height/2, '#FF4500');
+          this.particleSystem.addExplosion(enemyBounds.x + enemyBounds.width / 2, enemyBounds.y + enemyBounds.height / 2, '#FF4500');
         } else {
           // Player takes damage
           player.loseLife();
         }
       }
-      
+
       return true;
     });
-    
+
     // Check collisions with projectiles
     this.projectiles = this.projectiles.filter(projectile => {
       const projectileBounds = projectile.getBounds();
       const playerBounds = player.getBounds();
-      
+
       if (
         playerBounds.x < projectileBounds.x + projectileBounds.width &&
         playerBounds.x + playerBounds.width > projectileBounds.x &&
@@ -235,7 +230,7 @@ export class Level6 extends Level2 {
         this.particleSystem.addExplosion(projectileBounds.x, projectileBounds.y, '#FF0000');
         return false; // Remove projectile
       }
-      
+
       return true;
     });
   }

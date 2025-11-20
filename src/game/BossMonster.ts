@@ -1,3 +1,5 @@
+import { Projectile } from './Projectile';
+
 export class BossMonster {
   public x: number;
   public y: number;
@@ -15,6 +17,7 @@ export class BossMonster {
   private deathTimer: number = 0;
   private minX: number;
   private maxX: number;
+  private projectiles: Projectile[] = [];
 
   constructor(x: number, y: number, minX: number, maxX: number) {
     this.x = x;
@@ -55,6 +58,26 @@ export class BossMonster {
       this.animationFrame = (this.animationFrame + 1) % 4;
       this.animationTimer = 0;
     }
+  }
+
+  public shoot(targetX: number, targetY: number): Projectile | null {
+    if (this.isAttacking && this.attackTimer === 0) { // Just started attacking
+      // Logic to create projectile
+      const centerX = this.x + this.width / 2;
+      const centerY = this.y + this.height / 2;
+
+      // Calculate direction
+      const dx = targetX - centerX;
+      const dy = targetY - centerY;
+      const distance = Math.sqrt(dx * dx + dy * dy);
+
+      const speed = 400;
+      const velocityX = (dx / distance) * speed;
+      const velocityY = (dy / distance) * speed;
+
+      return new Projectile(centerX, centerY, velocityX, velocityY, 'LASER');
+    }
+    return null;
   }
 
   public render(ctx: CanvasRenderingContext2D): void {

@@ -4,14 +4,15 @@ import { FlyingEnemy } from './FlyingEnemy';
 import { PowerUp, PowerUpType } from './PowerUp';
 import { FinishFlag } from './FinishFlag';
 import { BossMonster } from './BossMonster';
+import { Projectile } from './Projectile';
+import { Player } from './Player';
 
 export class Level5 extends Level2 {
   protected boss: BossMonster | null = null;
+  protected projectiles: Projectile[] = [];
 
   constructor() {
     super();
-    this.createLevel();
-    this.spawnEnemies();
     this.spawnBoss();
   }
 
@@ -83,8 +84,7 @@ export class Level5 extends Level2 {
     this.boss = new BossMonster(width * 7.0, groundY, width * 6.3, width * 7.5);
   }
 
-  protected spawnEnemies(): void {
-    this.spawnTurtles();
+  protected spawnFlyingEnemies(): void {
     const width = window.innerWidth;
     const height = window.innerHeight;
 
@@ -153,9 +153,25 @@ export class Level5 extends Level2 {
 
   public update(deltaTime: number): void {
     super.update(deltaTime);
+
+    // Update boss
     if (this.boss) {
       this.boss.update(deltaTime);
+
+      // Boss shooting logic
+      if (this.player && !this.boss.isDefeated()) {
+        const projectile = this.boss.shoot(this.player.x, this.player.y);
+        if (projectile) {
+          this.projectiles.push(projectile);
+        }
+      }
     }
+
+    // Update projectiles
+    this.projectiles = this.projectiles.filter(projectile => {
+      projectile.update(deltaTime);
+      return !projectile.shouldRemove();
+    });
   }
 
   public render(ctx: CanvasRenderingContext2D): void {
@@ -163,9 +179,12 @@ export class Level5 extends Level2 {
     if (this.boss) {
       this.boss.render(ctx);
     }
+
+    // Render projectiles
+    this.projectiles.forEach(projectile => projectile.render(ctx));
   }
 
-  public checkCollisions(player: any): void {
+  public checkCollisions(player: Player): void {
     super.checkCollisions(player);
 
     // Check boss collision
@@ -193,6 +212,26 @@ export class Level5 extends Level2 {
         }
       }
     }
+
+    // Check projectile collisions
+    this.projectiles = this.projectiles.filter(projectile => {
+      const projectileBounds = projectile.getBounds();
+      const playerBounds = player.getBounds();
+
+      if (
+        playerBounds.x < projectileBounds.x + projectileBounds.width &&
+        playerBounds.x + playerBounds.width > projectileBounds.x &&
+        playerBounds.y < projectileBounds.y + projectileBounds.height &&
+        playerBounds.y + playerBounds.height > projectileBounds.y
+      ) {
+        // Player hit by projectile
+        player.loseLife();
+        this.particleSystem.addExplosion(projectileBounds.x, projectileBounds.y, '#FF0000');
+        return false; // Remove projectile
+      }
+
+      return true;
+    });
   }
 
   public endGame(won: boolean): void {

@@ -98,14 +98,6 @@ export class InteractiveEnemy {
     if (this.health < this.maxHealth && !this.defeated) {
       this.renderHealthBar(ctx);
     }
-
-    // Render detection range (debug)
-    if (false) { // Set to true for debugging
-      ctx.strokeStyle = 'rgba(255, 0, 0, 0.3)';
-      ctx.beginPath();
-      ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.detectionRange, 0, Math.PI * 2);
-      ctx.stroke();
-    }
   }
 
   private renderByType(ctx: CanvasRenderingContext2D): void {
@@ -221,22 +213,43 @@ export class InteractiveEnemy {
     return this.shootCooldown <= 0 && !this.defeated;
   }
 
-  public shoot(): Projectile | null {
+  public shoot(targetX: number, targetY: number): Projectile | null {
     if (!this.shouldShoot()) return null;
 
     this.shootCooldown = this.maxShootCooldown;
     this.lastShootTime = Date.now();
 
-    const startX = this.x + this.width;
+    const startX = this.x + this.width / 2;
     const startY = this.y + this.height / 2;
+
+    // Calculate direction vector
+    const dx = targetX - startX;
+    const dy = targetY - startY;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+
+    // Normalize and scale velocity
+    let velX = 0;
+    let velY = 0;
 
     switch (this.type) {
       case 'SHOOTER':
-        return new Projectile(startX, startY, 300, 0, 'BULLET');
+        // Shoots horizontally towards player
+        velX = (dx > 0 ? 1 : -1) * 300;
+        velY = 0;
+        return new Projectile(startX, startY, velX, velY, 'BULLET');
+
       case 'BOMBER':
-        return new Projectile(startX, startY, 150, -100, 'BOMB');
+        // Lobs bomb towards player
+        velX = (dx / distance) * 200; // Horizontal speed based on distance
+        velY = -300; // Always arc up
+        return new Projectile(startX, startY, velX, velY, 'BOMB');
+
       case 'SNIPER':
-        return new Projectile(startX, startY, 500, 0, 'LASER');
+        // Shoots directly at player, fast
+        velX = (dx / distance) * 600;
+        velY = (dy / distance) * 600;
+        return new Projectile(startX, startY, velX, velY, 'LASER');
+
       default:
         return null;
     }

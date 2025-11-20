@@ -69,17 +69,21 @@ export class InputSystem {
   }
 
   private setupTouchButtons(): void {
-    const buttonSize = Math.min(window.innerWidth, window.innerHeight) * 0.2;
+    // Use canvas logical size (CSS pixels)
+    const width = this.canvas.clientWidth;
+    const height = this.canvas.clientHeight;
+
+    const buttonSize = Math.min(width, height) * 0.2;
     const margin = 20;
     const bottomMargin = 30;
 
-    console.log(`Setting up touch buttons. Window: ${window.innerWidth}x${window.innerHeight}, DPR: ${this.dpr}`);
+    console.log(`Setting up touch buttons. Canvas: ${width}x${height}`);
 
     this.touchButtons = [
       {
         id: 'left',
         x: margin,
-        y: window.innerHeight - buttonSize - bottomMargin,
+        y: height - buttonSize - bottomMargin,
         width: buttonSize,
         height: buttonSize,
         action: 'ArrowLeft',
@@ -88,7 +92,7 @@ export class InputSystem {
       {
         id: 'right',
         x: margin + buttonSize + 15,
-        y: window.innerHeight - buttonSize - bottomMargin,
+        y: height - buttonSize - bottomMargin,
         width: buttonSize,
         height: buttonSize,
         action: 'ArrowRight',
@@ -96,8 +100,8 @@ export class InputSystem {
       },
       {
         id: 'jump',
-        x: window.innerWidth - buttonSize - margin,
-        y: window.innerHeight - buttonSize - bottomMargin,
+        x: width - buttonSize - margin,
+        y: height - buttonSize - bottomMargin,
         width: buttonSize,
         height: buttonSize,
         action: 'Space',
@@ -147,21 +151,17 @@ export class InputSystem {
 
   private handleTouchStart(event: TouchEvent): void {
     event.preventDefault();
-    console.log('Touch start event received');
+    const rect = this.canvas.getBoundingClientRect();
 
     for (const touch of Array.from(event.touches)) {
       this.inputState.touches.set(touch.identifier, touch);
 
-      const x = touch.clientX;
-      const y = touch.clientY;
-
-      console.log(`Touch at (${x}, ${y}), window: ${window.innerWidth}x${window.innerHeight}`);
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
 
       // Check touch buttons
       for (const button of this.touchButtons) {
-        console.log(`Checking button ${button.id} at (${button.x}, ${button.y}) size ${button.width}x${button.height}`);
         if (this.isPointInButton(x, y, button) && !button.pressed) {
-          console.log(`Button ${button.id} pressed, setting key ${button.action}`);
           button.pressed = true;
           this.inputState.keys.set(button.action, true);
           this.emit('keydown', button.action);
@@ -173,6 +173,7 @@ export class InputSystem {
 
   private handleTouchMove(event: TouchEvent): void {
     event.preventDefault();
+    const rect = this.canvas.getBoundingClientRect();
 
     // Reset all buttons first
     for (const button of this.touchButtons) {
@@ -187,8 +188,8 @@ export class InputSystem {
     for (const touch of Array.from(event.touches)) {
       this.inputState.touches.set(touch.identifier, touch);
 
-      const x = touch.clientX;
-      const y = touch.clientY;
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
 
       for (const button of this.touchButtons) {
         if (this.isPointInButton(x, y, button) && !button.pressed) {
@@ -203,6 +204,7 @@ export class InputSystem {
 
   private handleTouchEnd(event: TouchEvent): void {
     event.preventDefault();
+    const rect = this.canvas.getBoundingClientRect();
 
     // Remove ended touches
     for (const touch of Array.from(event.changedTouches)) {
@@ -214,8 +216,8 @@ export class InputSystem {
       let stillTouched = false;
 
       for (const touch of Array.from(event.touches)) {
-        const x = touch.clientX;
-        const y = touch.clientY;
+        const x = touch.clientX - rect.left;
+        const y = touch.clientY - rect.top;
 
         if (this.isPointInButton(x, y, button)) {
           stillTouched = true;
@@ -245,7 +247,7 @@ export class InputSystem {
 
   private isPointInButton(x: number, y: number, button: TouchButton): boolean {
     return x >= button.x && x <= button.x + button.width &&
-           y >= button.y && y <= button.y + button.height;
+      y >= button.y && y <= button.y + button.height;
   }
 
   public isKeyPressed(key: string): boolean {

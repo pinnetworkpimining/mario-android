@@ -32,17 +32,17 @@ export class GameScene implements Scene {
 
   public async load(): Promise<void> {
     this.logger.info('Loading Game scene');
-    
+
     // Initialize player
     const config = this.engine.getConfig();
     const startX = config.width * 0.1;
     const startY = config.height * 0.7;
-    
+
     this.player = new Player(startX, startY);
-    
+
     // Load first level
     await this.loadLevel(1);
-    
+
     // Setup input handlers
     this.keyDownHandler = this.handleKeyDown.bind(this);
     this.engine.getInputSystem().on('keydown', this.keyDownHandler);
@@ -60,23 +60,23 @@ export class GameScene implements Scene {
 
   public update(deltaTime: number): void {
     if (this.gameState !== 'playing') return;
-    
+
     // Update player
     if (this.player) {
       this.player.update(deltaTime, this.engine.getInputSystem());
     }
-    
+
     // Update level
     if (this.currentLevel) {
       this.currentLevel.update(deltaTime);
     }
-    
+
     // Update camera
     this.updateCamera();
-    
+
     // Check collisions
     this.checkCollisions();
-    
+
     // Update message timer
     if (this.messageTimer > 0) {
       this.messageTimer -= deltaTime;
@@ -90,26 +90,26 @@ export class GameScene implements Scene {
     // Apply camera transform
     renderSystem.setCamera(this.camera.x, this.camera.y);
     renderSystem.applyCameraTransform();
-    
+
     // Render level
     if (this.currentLevel) {
       this.currentLevel.render(renderSystem.getContext());
     }
-    
+
     // Render player
     if (this.player) {
       this.player.render(renderSystem.getContext());
     }
-    
+
     // Restore camera transform
     renderSystem.restoreCameraTransform();
-    
+
     // Render UI
     this.renderUI(renderSystem);
-    
+
     // Render touch controls
     this.engine.getInputSystem().renderTouchControls(renderSystem.getContext());
-    
+
     // Render messages
     if (this.currentMessage) {
       this.renderMessage(renderSystem);
@@ -154,6 +154,11 @@ export class GameScene implements Scene {
           this.currentLevel = new Level();
       }
 
+      // Set player reference for the level
+      if (this.player && this.currentLevel) {
+        this.currentLevel.setPlayer(this.player);
+      }
+
       // Reset player position
       if (this.player) {
         this.player.reset(startX, groundY - 64);
@@ -176,20 +181,20 @@ export class GameScene implements Scene {
 
   private updateCamera(): void {
     if (!this.player) return;
-    
+
     const config = this.engine.getConfig();
     const targetX = this.player.x - config.width / 2;
     const targetY = this.player.y - config.height / 2;
-    
+
     // Smooth camera movement
     this.camera.x += (targetX - this.camera.x) * 0.1;
     this.camera.y += (targetY - this.camera.y) * 0.1;
-    
+
     // Clamp camera to level bounds
     if (this.currentLevel) {
       const levelWidth = this.currentLevel.getLevelWidth ? this.currentLevel.getLevelWidth() : config.width * 4;
       const levelHeight = this.currentLevel.getLevelHeight ? this.currentLevel.getLevelHeight() : config.height;
-      
+
       this.camera.x = Math.max(0, Math.min(this.camera.x, levelWidth - config.width));
       this.camera.y = Math.max(0, Math.min(this.camera.y, levelHeight - config.height));
     }
@@ -197,15 +202,15 @@ export class GameScene implements Scene {
 
   private checkCollisions(): void {
     if (!this.player || !this.currentLevel) return;
-    
+
     // Check level collisions
     this.currentLevel.checkCollisions(this.player);
-    
+
     // Check if player fell off level
     if (this.player.y > this.engine.getConfig().height + 200) {
       this.playerDie();
     }
-    
+
     // Check level completion
     if (this.currentLevel.isCompleted && this.currentLevel.isCompleted()) {
       this.completeLevel();
@@ -216,7 +221,7 @@ export class GameScene implements Scene {
     this.logger.info('Player died');
     this.lives--;
     this.engine.getAudioSystem().playSound('hurt');
-    
+
     if (this.lives <= 0) {
       this.gameOver();
     } else {
@@ -258,7 +263,7 @@ export class GameScene implements Scene {
     this.gameState = 'gameOver';
     this.engine.getAudioSystem().playSound('gameover');
     this.showMessage(`Game Over! Final Score: ${this.score}`, 5000);
-    
+
     setTimeout(async () => {
       await this.engine.getSceneManager().loadScene('MainMenu');
     }, 5000);
@@ -271,21 +276,21 @@ export class GameScene implements Scene {
 
   private renderUI(renderSystem: RenderSystem): void {
     const config = this.engine.getConfig();
-    
+
     // UI background
     renderSystem.drawWithAlpha(() => {
       renderSystem.drawRect(10, 10, 300, 100, '#000000');
     }, 0.7);
-    
+
     // UI border
     renderSystem.drawRectOutline(10, 10, 300, 100, '#00ffff', 2);
-    
+
     // UI text
     renderSystem.drawText(`Score: ${this.score}`, 20, 35, '20px Arial', '#ffffff');
     renderSystem.drawText(`Lives: ${this.lives}`, 20, 60, '20px Arial', '#ffffff');
     renderSystem.drawText(`Health: ${this.player?.getHealth() || 0}`, 20, 85, '20px Arial', '#ffffff');
     renderSystem.drawText(`Level: ${this.levelNumber}`, 200, 35, '20px Arial', '#ffffff');
-    
+
     // Pause button
     renderSystem.drawWithAlpha(() => {
       renderSystem.drawRect(config.width - 80, 10, 70, 40, '#000000');
@@ -300,7 +305,7 @@ export class GameScene implements Scene {
     const messageHeight = 150;
     const x = (config.width - messageWidth) / 2;
     const y = (config.height - messageHeight) / 2;
-    
+
     // Message background
     renderSystem.drawWithAlpha(() => {
       renderSystem.drawGradientRect(x, y, messageWidth, messageHeight, [
@@ -308,10 +313,10 @@ export class GameScene implements Scene {
         { offset: 1, color: '#16213e' }
       ]);
     }, 0.95);
-    
+
     // Message border
     renderSystem.drawRectOutline(x, y, messageWidth, messageHeight, '#00ffff', 3);
-    
+
     // Message text
     renderSystem.drawText(
       this.currentMessage,

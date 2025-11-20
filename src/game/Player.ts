@@ -109,24 +109,24 @@ export class Player {
     // Mobile-optimized rendering
     const scaledWidth = this.width;
     const scaledHeight = this.height;
-    
+
     ctx.save();
-    
+
     // Apply invulnerability flashing effect
     if (this.invulnerable && Math.floor(Date.now() / 100) % 2) {
       ctx.globalAlpha = 0.5;
     }
-    
+
     // Flip sprite if facing left
     if (!this.facingRight) {
       ctx.scale(-1, 1);
       ctx.translate(-this.x * 2 - scaledWidth, 0);
     }
-    
+
     this.renderAdvancedCharacter(ctx, scaledWidth, scaledHeight);
-    
+
     ctx.restore();
-    
+
     // Render health bar above player
     this.renderHealthBar(ctx);
   }
@@ -135,7 +135,7 @@ export class Player {
     const isJumping = this.jumpAnimationTimer > 0;
     const walkOffset = this.isMoving ? Math.sin(this.animationFrame * Math.PI / 2) * 3 : 0;
     const breathingOffset = Math.sin(Date.now() * 0.003) * 1;
-    
+
     // Enhanced character with better graphics and animations
     // Body (main torso)
     const bodyGradient = ctx.createLinearGradient(this.x + 12, this.y + 24, this.x + 52, this.y + 56);
@@ -144,7 +144,7 @@ export class Player {
     bodyGradient.addColorStop(1, '#4169E1');
     ctx.fillStyle = bodyGradient;
     ctx.fillRect(this.x + 12, this.y + 24 + walkOffset + breathingOffset, 40, 32);
-    
+
     // Head
     const headGradient = ctx.createRadialGradient(this.x + 32, this.y + 16, 5, this.x + 32, this.y + 16, 20);
     headGradient.addColorStop(0, '#FFD700');
@@ -152,7 +152,7 @@ export class Player {
     headGradient.addColorStop(1, '#FF8C00');
     ctx.fillStyle = headGradient;
     ctx.fillRect(this.x + 16, this.y + 4 + breathingOffset, 32, 24);
-    
+
     // Hero helmet with gradient
     const helmetGradient = ctx.createLinearGradient(this.x + 12, this.y, this.x + 52, this.y + 12);
     helmetGradient.addColorStop(0, '#8B0000');
@@ -160,14 +160,14 @@ export class Player {
     helmetGradient.addColorStop(1, '#8B0000');
     ctx.fillStyle = helmetGradient;
     ctx.fillRect(this.x + 12, this.y + breathingOffset, 40, 12);
-    
+
     // Hero visor with glow effect
     ctx.fillStyle = '#00BFFF'; // Deep sky blue
     ctx.shadowColor = '#00BFFF';
     ctx.shadowBlur = 15;
     ctx.fillRect(this.x + 16, this.y + 8 + breathingOffset, 32, 4);
     ctx.shadowBlur = 0;
-    
+
     // Arms with gradient
     const armGradient = ctx.createLinearGradient(this.x + 4, this.y + 28, this.x + 16, this.y + 48);
     armGradient.addColorStop(0, '#32CD32');
@@ -176,7 +176,7 @@ export class Player {
     const armY = this.y + 28 + walkOffset + breathingOffset;
     ctx.fillRect(this.x + 4, armY, 12, 20); // Left arm
     ctx.fillRect(this.x + 48, armY, 12, 20); // Right arm
-    
+
     // Legs with walking animation and gradient
     const legGradient = ctx.createLinearGradient(this.x + 16, this.y + 56, this.x + 48, this.y + 64);
     legGradient.addColorStop(0, '#FF6347');
@@ -191,7 +191,7 @@ export class Player {
       ctx.fillRect(this.x + 16 + legOffset, this.y + 56, 12, 8);
       ctx.fillRect(this.x + 36 - legOffset, this.y + 56, 12, 8);
     }
-    
+
     // Hero boots with shine effect
     const bootGradient = ctx.createLinearGradient(this.x + 16, this.y + 60, this.x + 48, this.y + 64);
     bootGradient.addColorStop(0, '#8A2BE2');
@@ -204,7 +204,7 @@ export class Player {
       ctx.fillRect(this.x + 16 + legOffset, this.y + 60, 12, 4);
       ctx.fillRect(this.x + 36 - legOffset, this.y + 60, 12, 4);
     }
-    
+
     // Hero emblem with pulsing effect
     const emblemPulse = 1 + Math.sin(Date.now() * 0.01) * 0.2;
     ctx.fillStyle = '#FF1493';
@@ -216,7 +216,7 @@ export class Player {
     ctx.fillRect(-8, -6, 16, 12);
     ctx.restore();
     ctx.shadowBlur = 0;
-    
+
     // Enhanced magic sparkles around player
     if (this.health > 50) {
       for (let i = 0; i < 5; i++) {
@@ -225,12 +225,12 @@ export class Player {
         const offsetY = Math.cos(time + i * 1.5) * 15;
         const sparkleAlpha = Math.sin(time * 2 + i) * 0.3 + 0.5;
         const sparkleSize = 2 + Math.sin(time * 3 + i) * 1;
-        
+
         ctx.globalAlpha = sparkleAlpha;
         ctx.fillStyle = i % 2 === 0 ? '#FFD700' : '#00FFFF';
         ctx.shadowColor = ctx.fillStyle;
         ctx.shadowBlur = 8;
-        
+
         ctx.beginPath();
         ctx.arc(this.x + 32 + offsetX, this.y + 32 + offsetY + walkOffset + breathingOffset, sparkleSize, 0, Math.PI * 2);
         ctx.fill();
@@ -238,7 +238,7 @@ export class Player {
       ctx.globalAlpha = 1;
       ctx.shadowBlur = 0;
     }
-    
+
     // Power-up aura when invulnerable
     if (this.invulnerable) {
       const auraAlpha = Math.sin(Date.now() * 0.02) * 0.3 + 0.4;
@@ -258,16 +258,16 @@ export class Player {
     const barHeight = 8;
     const barX = this.x - 4;
     const barY = this.y - 16;
-    
+
     // Background
     ctx.fillStyle = 'rgba(0, 0, 0, 0.7)';
     ctx.fillRect(barX, barY, barWidth, barHeight);
-    
+
     // Health bar
     const healthPercent = this.health / this.maxHealth;
     ctx.fillStyle = healthPercent > 0.6 ? '#32CD32' : healthPercent > 0.3 ? '#FFD700' : '#FF4500';
     ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
-    
+
     // Border
     ctx.strokeStyle = '#4169E1';
     ctx.lineWidth = 2;
@@ -309,6 +309,10 @@ export class Player {
 
   public setVelocityY(velocity: number): void {
     this.velocityY = velocity;
+  }
+
+  public setVelocityX(velocity: number): void {
+    this.velocityX = velocity;
   }
 
   public loseLife(): void {

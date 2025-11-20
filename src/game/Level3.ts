@@ -5,75 +5,69 @@ import { PowerUp, PowerUpType } from './PowerUp';
 import { FinishFlag } from './FinishFlag';
 
 export class Level3 extends Level2 {
-  protected platforms: Array<{ x: number; y: number; width: number; height: number }> = [];
-  protected turtles: Turtle[] = [];
-  protected flyingEnemies: FlyingEnemy[] = [];
-  protected gameRunning: boolean = true;
+
 
   constructor() {
     super();
-    this.createLevel();
-    this.spawnEnemies();
   }
 
   protected createLevel(): void {
     const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
     const width = canvas ? canvas.width / (window.devicePixelRatio || 1) : 1900;
     const height = canvas ? canvas.height / (window.devicePixelRatio || 1) : 900;
-    
+
     this.levelWidth = width * 6; // Longest level
     this.levelHeight = height;
-    
+
     const groundHeight = Math.round(height * 0.1);
     this.platforms.push({ x: 0, y: height - groundHeight, width: this.levelWidth, height: groundHeight });
 
     // Expert level platforms - smaller and more challenging
     const platformHeight = Math.max(18, height * 0.02);
-    
+
     // Section 1 - Warm up
     this.platforms.push({ x: width * 0.12, y: height * 0.65, width: width * 0.08, height: platformHeight });
     this.platforms.push({ x: width * 0.28, y: height * 0.50, width: width * 0.06, height: platformHeight });
     this.platforms.push({ x: width * 0.42, y: height * 0.35, width: width * 0.06, height: platformHeight });
-    
+
     // Section 2 - Precision jumps
     this.platforms.push({ x: width * 0.8, y: height * 0.60, width: width * 0.05, height: platformHeight });
     this.platforms.push({ x: width * 0.95, y: height * 0.45, width: width * 0.05, height: platformHeight });
     this.platforms.push({ x: width * 1.1, y: height * 0.30, width: width * 0.05, height: platformHeight });
     this.platforms.push({ x: width * 1.25, y: height * 0.15, width: width * 0.06, height: platformHeight });
-    
+
     // Section 3 - Vertical challenge
     this.platforms.push({ x: width * 1.6, y: height * 0.70, width: width * 0.05, height: platformHeight });
     this.platforms.push({ x: width * 1.75, y: height * 0.55, width: width * 0.05, height: platformHeight });
     this.platforms.push({ x: width * 1.9, y: height * 0.40, width: width * 0.05, height: platformHeight });
     this.platforms.push({ x: width * 2.05, y: height * 0.25, width: width * 0.05, height: platformHeight });
     this.platforms.push({ x: width * 2.2, y: height * 0.10, width: width * 0.06, height: platformHeight });
-    
+
     // Section 4 - Moving platforms simulation (static but challenging)
     this.platforms.push({ x: width * 2.6, y: height * 0.65, width: width * 0.04, height: platformHeight });
     this.platforms.push({ x: width * 2.75, y: height * 0.50, width: width * 0.04, height: platformHeight });
     this.platforms.push({ x: width * 2.9, y: height * 0.35, width: width * 0.04, height: platformHeight });
     this.platforms.push({ x: width * 3.05, y: height * 0.20, width: width * 0.05, height: platformHeight });
-    
+
     // Section 5 - Boss area platforms
     this.platforms.push({ x: width * 3.5, y: height * 0.60, width: width * 0.08, height: platformHeight });
     this.platforms.push({ x: width * 3.7, y: height * 0.45, width: width * 0.08, height: platformHeight });
     this.platforms.push({ x: width * 3.9, y: height * 0.30, width: width * 0.08, height: platformHeight });
-    
+
     // Section 6 - Final gauntlet
     this.platforms.push({ x: width * 4.3, y: height * 0.55, width: width * 0.06, height: platformHeight });
     this.platforms.push({ x: width * 4.5, y: height * 0.40, width: width * 0.06, height: platformHeight });
     this.platforms.push({ x: width * 4.7, y: height * 0.25, width: width * 0.08, height: platformHeight });
-    
+
     // Final platform before flag
     this.platforms.push({ x: width * 5.2, y: height * 0.50, width: width * 0.20, height: platformHeight });
   }
 
-  protected spawnEnemies(): void {
-    this.spawnTurtles();
+  protected spawnFlyingEnemies(): void {
     const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
     const width = canvas ? canvas.width / (window.devicePixelRatio || 1) : 1900;
     const height = canvas ? canvas.height / (window.devicePixelRatio || 1) : 900;
-    
+
     // Many more flying enemies for final level
     this.flyingEnemies.push(new FlyingEnemy(width * 0.2, height * 0.55));
     this.flyingEnemies.push(new FlyingEnemy(width * 0.5, height * 0.25));
@@ -84,12 +78,12 @@ export class Level3 extends Level2 {
     this.flyingEnemies.push(new FlyingEnemy(width * 2.5, height * 0.55));
     this.flyingEnemies.push(new FlyingEnemy(width * 2.8, height * 0.25));
     this.flyingEnemies.push(new FlyingEnemy(width * 3.2, height * 0.35));
-    
+
     // Boss area enemies
     this.flyingEnemies.push(new FlyingEnemy(width * 3.6, height * 0.35));
     this.flyingEnemies.push(new FlyingEnemy(width * 3.8, height * 0.20));
     this.flyingEnemies.push(new FlyingEnemy(width * 4.0, height * 0.50));
-    
+
     // Final gauntlet
     this.flyingEnemies.push(new FlyingEnemy(width * 4.4, height * 0.30));
     this.flyingEnemies.push(new FlyingEnemy(width * 4.8, height * 0.15));
@@ -102,7 +96,7 @@ export class Level3 extends Level2 {
     const height = canvas ? canvas.height / (window.devicePixelRatio || 1) : 900;
     const groundHeight = Math.round(height * 0.10);
     const groundY = height - groundHeight;
-    
+
     // Many turtles across the long level
     this.turtles.push(new Turtle(width * 0.25, groundY - 32));
     this.turtles.push(new Turtle(width * 0.6, groundY - 32));
@@ -116,7 +110,7 @@ export class Level3 extends Level2 {
     this.turtles.push(new Turtle(width * 4.1, groundY - 32));
     this.turtles.push(new Turtle(width * 4.6, groundY - 32));
     this.turtles.push(new Turtle(width * 5.1, groundY - 32));
-    
+
     // Some turtles on platforms for extra challenge
     this.turtles.push(new Turtle(width * 0.3, height * 0.62));
     this.turtles.push(new Turtle(width * 1.27, height * 0.12));
@@ -128,7 +122,7 @@ export class Level3 extends Level2 {
     const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
     const width = canvas ? canvas.width / (window.devicePixelRatio || 1) : 1900;
     const height = canvas ? canvas.height / (window.devicePixelRatio || 1) : 900;
-    
+
     // Strategic power-up placement for final level
     this.powerUps.push(new PowerUp(width * 0.15, height * 0.60, PowerUpType.HEALTH));
     this.powerUps.push(new PowerUp(width * 0.45, height * 0.30, PowerUpType.SPEED));
@@ -148,12 +142,10 @@ export class Level3 extends Level2 {
     const width = canvas ? canvas.width / (window.devicePixelRatio || 1) : 1900;
     const height = canvas ? canvas.height / (window.devicePixelRatio || 1) : 900;
     const groundY = height - Math.round(height * 0.10);
-    
+
     // Place finish flag at the very end
     this.finishFlag = new FinishFlag(width * 5.7, groundY - 80);
   }
-
-  // update, render, checkCollisions inherited from Level2
 
   public endGame(won: boolean): void {
     if (won) {
@@ -186,7 +178,7 @@ export class Level3 extends Level2 {
     }
   }
 
-  private showVictoryMessage(): void {
+  protected showVictoryMessage(): void {
     const message = document.createElement('div');
     message.id = 'game-message';
     message.innerHTML = `

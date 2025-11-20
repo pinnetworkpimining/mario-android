@@ -15,6 +15,7 @@ export class Level extends BaseLevel {
   protected particleSystem: ParticleSystem = new ParticleSystem();
   protected levelWidth: number = 0;
   protected levelHeight: number = 0;
+  protected player: Player | null = null;
 
   constructor() {
     super();
@@ -22,6 +23,10 @@ export class Level extends BaseLevel {
     this.spawnTurtles();
     this.spawnPowerUps();
     this.spawnFinishFlag();
+  }
+
+  public setPlayer(player: Player): void {
+    this.player = player;
   }
 
   protected createLevel(): void {
@@ -220,63 +225,76 @@ export class Level extends BaseLevel {
 
   private renderPlatform(ctx: CanvasRenderingContext2D, platform: any): void {
     // Cyber platform
-    const gradient = ctx.createLinearGradient(platform.x, platform.y, platform.x, platform.y + platform.height);
-    gradient.addColorStop(0, '#00ffff');
-    gradient.addColorStop(0.5, '#0066cc');
-    gradient.addColorStop(1, '#1a1a2e');
-
-    ctx.fillStyle = gradient;
+    ctx.fillStyle = '#0f3460';
     ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
 
-    // Glowing edge
+    // Neon border
     ctx.strokeStyle = '#00ffff';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(platform.x, platform.y, platform.width, platform.height);
+
+    // Glow effect
     ctx.shadowColor = '#00ffff';
     ctx.shadowBlur = 10;
-    ctx.strokeRect(platform.x, platform.y, platform.width, platform.height);
+    ctx.fillStyle = 'rgba(0, 255, 255, 0.2)';
+    ctx.fillRect(platform.x, platform.y, platform.width, 5);
     ctx.shadowBlur = 0;
-
-    // Energy nodes
-    ctx.fillStyle = '#ffff00';
-    for (let i = platform.x + 20; i < platform.x + platform.width - 20; i += 40) {
-      ctx.fillRect(i, platform.y + 4, 6, 6);
-    }
   }
 
   public checkCollisions(player: Player): void {
-    const playerBounds = player.getBounds();
+    // Platform collisions
     let onGround = false;
+    const playerBounds = player.getBounds();
 
     this.platforms.forEach(platform => {
-      // Check if player is colliding with platform
-      if (playerBounds.x < platform.x + platform.width &&
+      if (
+        playerBounds.x < platform.x + platform.width &&
         playerBounds.x + playerBounds.width > platform.x &&
         playerBounds.y < platform.y + platform.height &&
-        playerBounds.y + playerBounds.height >= platform.y) {
+        playerBounds.y + playerBounds.height > platform.y
+      ) {
+        // Collision detected
+        const overlapX = Math.min(
+          playerBounds.x + playerBounds.width - platform.x,
+          platform.x + platform.width - playerBounds.x
+        );
+        const overlapY = Math.min(
+          playerBounds.y + playerBounds.height - platform.y,
+          platform.y + platform.height - playerBounds.y
+        );
 
-        // Check if player is falling onto platform from above
-        if (player.getVelocityY() > 0 && playerBounds.y < platform.y) {
-          player.setPosition(player.x, platform.y - playerBounds.height);
-          player.setVelocityY(0);
-          player.setOnGround(true);
-          onGround = true;
+        if (overlapX < overlapY) {
+          // Horizontal collision
+          if (playerBounds.x < platform.x) {
+            player.x = platform.x - playerBounds.width;
+          } else {
+            player.x = platform.x + platform.width;
+          }
+          player.setVelocityX(0);
+        } else {
+          // Vertical collision
+          if (playerBounds.y < platform.y) {
+            player.y = platform.y - playerBounds.height;
+            player.setVelocityY(0);
+            player.setOnGround(true);
+            onGround = true;
+          } else {
+            player.y = platform.y + platform.height;
+            player.setVelocityY(0);
+          }
         }
       }
     });
-
 
     if (!onGround) {
       player.setOnGround(false);
     }
 
-    // Check collisions with turtles
-    this.turtles = this.turtles.filter(turtle => {
-      if (turtle.isDefeated()) {
-        return false; // Remove defeated turtles
-      }
+    // Turtle collisions
+    this.turtles.forEach(turtle => {
+      if (turtle.isDefeated()) return;
 
       const turtleBounds = turtle.getBounds();
-
       if (
         playerBounds.x < turtleBounds.x + turtleBounds.width &&
         playerBounds.x + playerBounds.width > turtleBounds.x &&
@@ -284,25 +302,18 @@ export class Level extends BaseLevel {
         playerBounds.y + playerBounds.height > turtleBounds.y
       ) {
         if (player.getVelocityY() > 0 && playerBounds.y + playerBounds.height <= turtleBounds.y + 10) {
-          // Player damages the turtle by jumping on it
+          // Player jumped on turtle
           turtle.takeDamage();
-          player.setVelocityY(-200); // Small bounce
-          this.particleSystem.addExplosion(turtleBounds.x + turtleBounds.width / 2, turtleBounds.y + turtleBounds.height / 2, '#FFD700');
+          player.setVelocityY(-200); // Bounce
+          this.particleSystem.addExplosion(turtleBounds.x + turtleBounds.width / 2, turtleBounds.y + turtleBounds.height / 2, '#00ff00');
         } else {
-          // Player loses health if touching the turtle from the side or bottom
+          // Player hit turtle
           player.loseLife();
-          if (player.getLives() <= 0) {
-            this.endGame(false); // Lose condition
-          } else {
-            player.setPosition(100, 400); // Reset player position
-          }
         }
       }
-
-      return true; // Keep turtle in array
     });
 
-    // Check collisions with power-ups
+    // Power-up collisions
     this.powerUps = this.powerUps.filter(powerUp => {
       if (powerUp.isCollected()) return false;
 
@@ -313,30 +324,14 @@ export class Level extends BaseLevel {
         playerBounds.y < powerUpBounds.y + powerUpBounds.height &&
         playerBounds.y + playerBounds.height > powerUpBounds.y
       ) {
-        const type = powerUp.collect();
-        this.particleSystem.addExplosion(powerUpBounds.x + powerUpBounds.width / 2, powerUpBounds.y + powerUpBounds.height / 2, '#00FFFF');
-
-        // Apply power-up effect
-        switch (type) {
-          case PowerUpType.HEALTH:
-            player.heal(25);
-            break;
-          case PowerUpType.SPEED:
-            // Could implement speed boost
-            break;
-          case PowerUpType.JUMP:
-            // Could implement jump boost
-            break;
-          case PowerUpType.SHIELD:
-            // Could implement shield
-            break;
-        }
+        powerUp.collect();
+        this.particleSystem.addExplosion(powerUpBounds.x + powerUpBounds.width / 2, powerUpBounds.y + powerUpBounds.height / 2, '#ffff00');
         return false;
       }
       return true;
     });
 
-    // Check collision with finish flag
+    // Finish flag collision
     if (this.finishFlag && !this.finishFlag.isCollected()) {
       const flagBounds = this.finishFlag.getBounds();
       if (
@@ -346,88 +341,57 @@ export class Level extends BaseLevel {
         playerBounds.y + playerBounds.height > flagBounds.y
       ) {
         this.finishFlag.collect();
-        this.particleSystem.addExplosion(flagBounds.x + flagBounds.width / 2, flagBounds.y + flagBounds.height / 2, '#FFD700');
-        this.levelCompleted = true;
+        this.endGame(true);
       }
+    }
+
+    // Level boundary check
+    if (player.y > this.levelHeight) {
+      player.loseLife();
     }
   }
 
   public endGame(won: boolean): void {
-    if (!this.gameRunning) return; // Prevent multiple calls to endGame
-
-    this.gameRunning = false; // Stop the game loop
-
-    if (won) {
-      this.showLevelCompleteMessage('Level 1 Complete! Loading Level 2...');
-
-      setTimeout(() => {
-        this.hideMessage();
-        // Signal level completion to the scene system
-        if ((window as any).levelCompleted) {
-          (window as any).levelCompleted(1);
-        }
-      }, 2000);
-    } else {
-      this.showGameOverMessage();
-      setTimeout(() => {
-        this.hideMessage();
-        window.location.reload();
-      }, 2000);
-    }
-  }
-
-  protected showLevelCompleteMessage(text: string): void {
-    const message = document.createElement('div');
-    message.id = 'game-message';
-    message.textContent = text;
-    message.style.cssText = `
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: #FFD700;
-      font-size: 4vw;
-      font-weight: bold;
-      text-align: center;
-      background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(0,50,0,0.9));
-      padding: 3vw 6vw;
-      border-radius: 2vw;
-      border: 3px solid #FFD700;
-      z-index: 1000;
-      box-shadow: 0 0 20px rgba(255,215,0,0.5);
-      animation: fadeIn 0.5s ease-in;
-    `;
-    document.body.appendChild(message);
+    this.gameRunning = false;
+    // Override in subclasses
   }
 
   protected showGameOverMessage(): void {
-    const message = document.createElement('div');
-    message.id = 'game-message';
-    message.textContent = 'Game Over! Restarting...';
-    message.style.cssText = `
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      color: #FF4444;
-      font-size: 4vw;
-      font-weight: bold;
-      text-align: center;
-      background: linear-gradient(135deg, rgba(0,0,0,0.9), rgba(50,0,0,0.9));
-      padding: 3vw 6vw;
-      border-radius: 2vw;
-      border: 3px solid #FF4444;
-      z-index: 1000;
-      box-shadow: 0 0 20px rgba(255,68,68,0.5);
-      animation: fadeIn 0.5s ease-in;
-    `;
-    document.body.appendChild(message);
+    this.showMessage('GAME OVER', '#FF0000');
+  }
+
+  protected showVictoryMessage(): void {
+    this.showMessage('VICTORY!', '#00FF00');
+  }
+
+  protected showLevelCompleteMessage(text: string): void {
+    this.showMessage(text, '#00FF00');
   }
 
   protected hideMessage(): void {
     const message = document.getElementById('game-message');
     if (message) {
-      document.body.removeChild(message);
+      message.remove();
     }
+  }
+
+  private showMessage(text: string, color: string): void {
+    let message = document.getElementById('game-message');
+    if (!message) {
+      message = document.createElement('div');
+      message.id = 'game-message';
+      message.style.position = 'fixed';
+      message.style.top = '50%';
+      message.style.left = '50%';
+      message.style.transform = 'translate(-50%, -50%)';
+      message.style.color = color;
+      message.style.fontSize = '48px';
+      message.style.fontWeight = 'bold';
+      message.style.textShadow = '2px 2px 4px #000000';
+      message.style.zIndex = '1000';
+      document.body.appendChild(message);
+    }
+    message.textContent = text;
+    message.style.color = color;
   }
 }
