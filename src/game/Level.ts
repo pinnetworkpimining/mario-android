@@ -7,9 +7,9 @@ import { PowerUp, PowerUpType } from './PowerUp';
 import { ParticleSystem } from './ParticleSystem';
 
 export class Level extends BaseLevel {
-  protected platforms: Array<{x: number, y: number, width: number, height: number}> = []; // Changed from private to protected
+  protected platforms: Array<{ x: number, y: number, width: number, height: number }> = [];
   protected turtles: Turtle[] = [];
-  protected gameRunning: boolean = true; // Flag to control game loop
+  protected gameRunning: boolean = true;
   protected finishFlag: FinishFlag | null = null;
   protected powerUps: PowerUp[] = [];
   protected particleSystem: ParticleSystem = new ParticleSystem();
@@ -28,32 +28,54 @@ export class Level extends BaseLevel {
     // Mobile landscape optimized level
     const width = window.innerWidth;
     const height = window.innerHeight;
-    
+
     this.levelWidth = width * 4; // Shorter for better pacing
     this.levelHeight = height;
-    
-    // Ground platform - mobile optimized
+
+    // Ground platform - mobile optimized with gaps
     const groundHeight = Math.round(height * 0.15); // Thicker ground for mobile
-    this.platforms.push({ x: 0, y: height - groundHeight, width: this.levelWidth, height: groundHeight });
+
+    // Segment 1: Start area
+    this.platforms.push({ x: 0, y: height - groundHeight, width: width * 0.8, height: groundHeight });
+
+    // Gap 1 (width * 0.2)
+
+    // Segment 2: After first gap
+    this.platforms.push({ x: width * 1.0, y: height - groundHeight, width: width * 0.5, height: groundHeight });
+
+    // Gap 2 (width * 0.2)
+
+    // Segment 3: Middle section
+    this.platforms.push({ x: width * 1.7, y: height - groundHeight, width: width * 0.8, height: groundHeight });
+
+    // Segment 4: End section
+    this.platforms.push({ x: width * 2.8, y: height - groundHeight, width: width * 1.2, height: groundHeight });
 
     // Mobile-friendly platform spacing
     const platformHeight = Math.max(30, height * 0.04); // Bigger platforms for mobile
-    const jumpDistance = width * 0.15; // Reasonable jump distance
-    
+
     // First section - easy jumps
     this.platforms.push({ x: width * 0.3, y: height * 0.7, width: width * 0.15, height: platformHeight });
     this.platforms.push({ x: width * 0.6, y: height * 0.6, width: width * 0.15, height: platformHeight });
-    this.platforms.push({ x: width * 0.9, y: height * 0.5, width: width * 0.15, height: platformHeight });
-    
+    this.platforms.push({ x: width * 0.9, y: height * 0.5, width: width * 0.15, height: platformHeight }); // Bridge over gap
+
     // Second section - medium difficulty
     this.platforms.push({ x: width * 1.3, y: height * 0.65, width: width * 0.12, height: platformHeight });
-    this.platforms.push({ x: width * 1.6, y: height * 0.55, width: width * 0.12, height: platformHeight });
-    this.platforms.push({ x: width * 1.9, y: height * 0.45, width: width * 0.12, height: platformHeight });
-    
+    this.platforms.push({ x: width * 1.6, y: height * 0.55, width: width * 0.12, height: platformHeight }); // Bridge over gap
+
+    // Vertical obstacles (Pipes)
+    const pipeWidth = width * 0.05;
+    const pipeHeight1 = height * 0.2;
+    const pipeHeight2 = height * 0.3;
+
+    this.platforms.push({ x: width * 0.5, y: height - groundHeight - pipeHeight1, width: pipeWidth, height: pipeHeight1 });
+    this.platforms.push({ x: width * 2.0, y: height - groundHeight - pipeHeight2, width: pipeWidth, height: pipeHeight2 });
+    this.platforms.push({ x: width * 3.0, y: height - groundHeight - pipeHeight1, width: pipeWidth, height: pipeHeight1 });
+
     // Third section - getting harder
     this.platforms.push({ x: width * 2.3, y: height * 0.6, width: width * 0.12, height: platformHeight });
     this.platforms.push({ x: width * 2.7, y: height * 0.5, width: width * 0.12, height: platformHeight });
-    
+
     // Final section leading to flag  
     this.platforms.push({ x: width * 3.2, y: height * 0.4, width: width * 0.20, height: platformHeight });
   }
@@ -61,21 +83,22 @@ export class Level extends BaseLevel {
   protected spawnTurtles(): void {
     const width = window.innerWidth;
     const height = window.innerHeight;
-    const groundY = height - Math.round(height * 0.15) - 64; // 64 = turtle height for mobile
-    
+    const groundHeight = Math.round(height * 0.15);
+    const groundY = height - groundHeight - 64; // 64 = turtle height for mobile
+
     // Fewer but better positioned enemies for mobile
     this.turtles.push(new Turtle(width * 0.5, groundY));
     this.turtles.push(new Turtle(width * 1.2, groundY));
     this.turtles.push(new Turtle(width * 2.1, groundY));
     this.turtles.push(new Turtle(width * 3.2, groundY));
-    this.turtles.push(new Turtle(width * 4.5, groundY));
+    this.turtles.push(new Turtle(width * 3.8, groundY));
   }
 
   protected spawnPowerUps(): void {
     const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
     const width = canvas ? canvas.width / (window.devicePixelRatio || 1) : 1900;
     const height = canvas ? canvas.height / (window.devicePixelRatio || 1) : 900;
-    
+
     // Place power-ups on platforms and around the level
     this.powerUps.push(new PowerUp(width * 0.15, height * 0.60, PowerUpType.HEALTH));
     this.powerUps.push(new PowerUp(width * 0.5, height * 0.35, PowerUpType.SPEED));
@@ -101,7 +124,7 @@ export class Level extends BaseLevel {
     this.turtles.forEach(turtle => turtle.update(deltaTime));
     this.powerUps.forEach(powerUp => powerUp.update(deltaTime));
     this.particleSystem.update(deltaTime);
-    
+
     if (this.finishFlag) {
       this.finishFlag.update(deltaTime);
     }
@@ -123,13 +146,15 @@ export class Level extends BaseLevel {
     gradient.addColorStop(1, '#0f3460');
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, this.levelWidth, window.innerHeight);
-    
+
     // Draw cyber grid background
     this.renderCyberGrid(ctx);
-    
+
     // Draw platforms
     this.platforms.forEach((platform, idx) => {
-      if (idx === 0) {
+      // Check if it's a ground segment or pipe
+      const groundHeight = Math.round(window.innerHeight * 0.15);
+      if (platform.y >= window.innerHeight - groundHeight) {
         this.renderGround(ctx, platform);
       } else {
         this.renderPlatform(ctx, platform);
@@ -138,15 +163,15 @@ export class Level extends BaseLevel {
 
     // Draw turtles
     this.turtles.forEach(turtle => turtle.render(ctx));
-    
+
     // Draw power-ups
     this.powerUps.forEach(powerUp => powerUp.render(ctx));
-    
+
     // Draw finish flag
     if (this.finishFlag) {
       this.finishFlag.render(ctx);
     }
-    
+
     // Draw particles
     this.particleSystem.render(ctx);
   }
@@ -154,7 +179,7 @@ export class Level extends BaseLevel {
   private renderCyberGrid(ctx: CanvasRenderingContext2D): void {
     ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
     ctx.lineWidth = 1;
-    
+
     // Vertical lines
     for (let x = 0; x < this.levelWidth; x += 100) {
       ctx.beginPath();
@@ -162,7 +187,7 @@ export class Level extends BaseLevel {
       ctx.lineTo(x, window.innerHeight);
       ctx.stroke();
     }
-    
+
     // Horizontal lines
     for (let y = 0; y < window.innerHeight; y += 100) {
       ctx.beginPath();
@@ -178,14 +203,14 @@ export class Level extends BaseLevel {
     gradient.addColorStop(0, '#00ffff');
     gradient.addColorStop(0.3, '#0066cc');
     gradient.addColorStop(1, '#1a1a2e');
-    
+
     ctx.fillStyle = gradient;
-    ctx.fillRect(0, platform.y, this.levelWidth, window.innerHeight - platform.y);
-    
+    ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
+
     // Add cyber energy lines
     ctx.strokeStyle = '#00ffff';
     ctx.lineWidth = 2;
-    for (let i = 0; i < this.levelWidth; i += 20) {
+    for (let i = platform.x; i < platform.x + platform.width; i += 20) {
       ctx.beginPath();
       ctx.moveTo(i, platform.y);
       ctx.lineTo(i, platform.y - 10);
@@ -199,10 +224,10 @@ export class Level extends BaseLevel {
     gradient.addColorStop(0, '#00ffff');
     gradient.addColorStop(0.5, '#0066cc');
     gradient.addColorStop(1, '#1a1a2e');
-    
+
     ctx.fillStyle = gradient;
     ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
-    
+
     // Glowing edge
     ctx.strokeStyle = '#00ffff';
     ctx.lineWidth = 3;
@@ -210,7 +235,7 @@ export class Level extends BaseLevel {
     ctx.shadowBlur = 10;
     ctx.strokeRect(platform.x, platform.y, platform.width, platform.height);
     ctx.shadowBlur = 0;
-    
+
     // Energy nodes
     ctx.fillStyle = '#ffff00';
     for (let i = platform.x + 20; i < platform.x + platform.width - 20; i += 40) {
@@ -225,9 +250,9 @@ export class Level extends BaseLevel {
     this.platforms.forEach(platform => {
       // Check if player is colliding with platform
       if (playerBounds.x < platform.x + platform.width &&
-          playerBounds.x + playerBounds.width > platform.x &&
-          playerBounds.y < platform.y + platform.height &&
-          playerBounds.y + playerBounds.height >= platform.y) {
+        playerBounds.x + playerBounds.width > platform.x &&
+        playerBounds.y < platform.y + platform.height &&
+        playerBounds.y + playerBounds.height >= platform.y) {
 
         // Check if player is falling onto platform from above
         if (player.getVelocityY() > 0 && playerBounds.y < platform.y) {
@@ -249,7 +274,7 @@ export class Level extends BaseLevel {
       if (turtle.isDefeated()) {
         return false; // Remove defeated turtles
       }
-      
+
       const turtleBounds = turtle.getBounds();
 
       if (
@@ -262,7 +287,7 @@ export class Level extends BaseLevel {
           // Player damages the turtle by jumping on it
           turtle.takeDamage();
           player.setVelocityY(-200); // Small bounce
-          this.particleSystem.addExplosion(turtleBounds.x + turtleBounds.width/2, turtleBounds.y + turtleBounds.height/2, '#FFD700');
+          this.particleSystem.addExplosion(turtleBounds.x + turtleBounds.width / 2, turtleBounds.y + turtleBounds.height / 2, '#FFD700');
         } else {
           // Player loses health if touching the turtle from the side or bottom
           player.loseLife();
@@ -273,14 +298,14 @@ export class Level extends BaseLevel {
           }
         }
       }
-      
+
       return true; // Keep turtle in array
     });
 
     // Check collisions with power-ups
     this.powerUps = this.powerUps.filter(powerUp => {
       if (powerUp.isCollected()) return false;
-      
+
       const powerUpBounds = powerUp.getBounds();
       if (
         playerBounds.x < powerUpBounds.x + powerUpBounds.width &&
@@ -289,8 +314,8 @@ export class Level extends BaseLevel {
         playerBounds.y + playerBounds.height > powerUpBounds.y
       ) {
         const type = powerUp.collect();
-        this.particleSystem.addExplosion(powerUpBounds.x + powerUpBounds.width/2, powerUpBounds.y + powerUpBounds.height/2, '#00FFFF');
-        
+        this.particleSystem.addExplosion(powerUpBounds.x + powerUpBounds.width / 2, powerUpBounds.y + powerUpBounds.height / 2, '#00FFFF');
+
         // Apply power-up effect
         switch (type) {
           case PowerUpType.HEALTH:
@@ -321,7 +346,7 @@ export class Level extends BaseLevel {
         playerBounds.y + playerBounds.height > flagBounds.y
       ) {
         this.finishFlag.collect();
-        this.particleSystem.addExplosion(flagBounds.x + flagBounds.width/2, flagBounds.y + flagBounds.height/2, '#FFD700');
+        this.particleSystem.addExplosion(flagBounds.x + flagBounds.width / 2, flagBounds.y + flagBounds.height / 2, '#FFD700');
         this.levelCompleted = true;
       }
     }

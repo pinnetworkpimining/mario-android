@@ -36,33 +36,33 @@ export class AudioSystem {
       sfxVolume: 0.8,
       enabled: true
     };
-    
+
     this.initializeAudio();
   }
 
   private async initializeAudio(): Promise<void> {
     try {
       this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
-      
+
       // Create gain nodes for mixing
       this.masterGainNode = this.audioContext.createGain();
       this.musicGainNode = this.audioContext.createGain();
       this.sfxGainNode = this.audioContext.createGain();
-      
+
       // Connect gain nodes
       this.musicGainNode.connect(this.masterGainNode);
       this.sfxGainNode.connect(this.masterGainNode);
       this.masterGainNode.connect(this.audioContext.destination);
-      
+
       // Set initial volumes
       this.updateVolumes();
-      
+
       // Resume context on user interaction
       document.addEventListener('touchstart', () => this.resumeContext(), { once: true });
       document.addEventListener('click', () => this.resumeContext(), { once: true });
-      
+
       await this.createSounds();
-      
+
       this.logger.info('AudioSystem initialized successfully');
     } catch (error) {
       this.logger.error('Failed to initialize AudioSystem', error);
@@ -74,7 +74,7 @@ export class AudioSystem {
     if (!this.audioContext) return;
 
     const soundDefinitions = [
-      { id: 'jump', frequencies: [220, 330, 440], duration: 0.15, type: 'sine' as OscillatorType, category: 'sfx' as const },
+      { id: 'jump', frequencies: [220], duration: 0.2, type: 'sine' as OscillatorType, category: 'sfx' as const, slide: true },
       { id: 'defeat', frequencies: [880, 660, 440, 220], duration: 0.3, type: 'square' as OscillatorType, category: 'sfx' as const },
       { id: 'powerup', frequencies: [523, 659, 784, 1047, 1319], duration: 0.1, type: 'sine' as OscillatorType, category: 'sfx' as const },
       { id: 'coin', frequencies: [1047, 1319], duration: 0.1, type: 'sine' as OscillatorType, category: 'sfx' as const },
@@ -87,7 +87,7 @@ export class AudioSystem {
 
     for (const def of soundDefinitions) {
       try {
-        const buffer = this.createSoundBuffer(def.frequencies, def.duration, def.type);
+        const buffer = this.createSoundBuffer(def.frequencies, def.duration, def.type, def.slide);
         this.sounds.set(def.id, { id: def.id, buffer, category: def.category });
       } catch (error) {
         this.logger.warn(`Failed to create sound: ${def.id}`, error);
@@ -103,7 +103,7 @@ export class AudioSystem {
     }
   }
 
-  private createSoundBuffer(frequencies: number[], duration: number, type: OscillatorType): AudioBuffer {
+  private createSoundBuffer(frequencies: number[], duration: number, type: OscillatorType, slide: boolean = false): AudioBuffer {
     if (!this.audioContext) throw new Error('AudioContext not available');
 
     const sampleRate = this.audioContext.sampleRate;
@@ -117,15 +117,22 @@ export class AudioSystem {
       // Mix multiple frequencies
       frequencies.forEach((freq, index) => {
         const amplitude = 1 / frequencies.length;
+        let currentFreq = freq;
+
+        if (slide) {
+          // Slide frequency up (classic jump sound)
+          currentFreq = freq + (t / duration) * 400;
+        }
+
         switch (type) {
           case 'sine':
-            sample += Math.sin(2 * Math.PI * freq * t) * amplitude;
+            sample += Math.sin(2 * Math.PI * currentFreq * t) * amplitude;
             break;
           case 'square':
-            sample += Math.sign(Math.sin(2 * Math.PI * freq * t)) * amplitude;
+            sample += Math.sign(Math.sin(2 * Math.PI * currentFreq * t)) * amplitude;
             break;
           case 'sawtooth':
-            sample += 2 * (t * freq - Math.floor(t * freq + 0.5)) * amplitude;
+            sample += 2 * (t * currentFreq - Math.floor(t * currentFreq + 0.5)) * amplitude;
             break;
         }
       });
@@ -141,21 +148,32 @@ export class AudioSystem {
   private createMusicBuffer(): AudioBuffer {
     if (!this.audioContext) throw new Error('AudioContext not available');
 
-    const melody = [523, 587, 659, 698, 784, 698, 659, 587, 523, 466, 523, 587];
+    // A slightly more complex melody (Mario-ish style)
+    const melody = [
+      659, 659, 0, 659, 0, 523, 659, 0, 784, 0, 0, 0, 392, 0, 0, 0, // E E E C E G G
+      523, 0, 0, 392, 0, 0, 330, 0, 0, 440, 0, 494, 0, 466, 440, 0  // C G E A B Bb A
+    ];
     const sampleRate = this.audioContext.sampleRate;
-    const noteDuration = 0.5;
+    const noteDuration = 0.15; // Faster tempo
     const totalDuration = melody.length * noteDuration;
     const buffer = this.audioContext.createBuffer(1, totalDuration * sampleRate, sampleRate);
     const data = buffer.getChannelData(0);
 
     melody.forEach((freq, noteIndex) => {
-      const startSample = noteIndex * noteDuration * sampleRate;
-      const endSample = (noteIndex + 1) * noteDuration * sampleRate;
+      if (freq === 0) return; // Rest
+
+      const startSample = Math.floor(noteIndex * noteDuration * sampleRate);
+      const endSample = Math.floor((noteIndex + 1) * noteDuration * sampleRate);
 
       for (let i = startSample; i < endSample && i < data.length; i++) {
         const t = (i - startSample) / sampleRate;
-        const envelope = 0.3 * (1 - Math.abs(t - noteDuration/2) / (noteDuration/2));
-        data[i] = Math.sin(2 * Math.PI * freq * t) * envelope * 0.2;
+        // Short decay for staccato feel
+        const envelope = Math.exp(-t * 10);
+
+        // Square wave for retro feel
+        const sample = Math.sign(Math.sin(2 * Math.PI * freq * t)) * 0.1;
+
+        data[i] += sample * envelope;
       }
     });
 
@@ -170,15 +188,15 @@ export class AudioSystem {
     try {
       const sound = this.sounds.get(soundId)!;
       const source = this.audioContext.createBufferSource();
-      
+
       source.buffer = sound.buffer;
-      
+
       // Connect to appropriate gain node
       const gainNode = sound.category === 'music' ? this.musicGainNode : this.sfxGainNode;
       source.connect(gainNode!);
-      
+
       source.start();
-      
+
       this.logger.debug(`Playing sound: ${soundId}`);
     } catch (error) {
       this.logger.warn(`Failed to play sound: ${soundId}`, error);
@@ -192,16 +210,16 @@ export class AudioSystem {
 
     try {
       this.stopMusic();
-      
+
       const music = this.sounds.get(musicId)!;
       this.currentMusic = this.audioContext.createBufferSource();
-      
+
       this.currentMusic.buffer = music.buffer;
       this.currentMusic.loop = loop;
       this.currentMusic.connect(this.musicGainNode!);
-      
+
       this.currentMusic.start();
-      
+
       this.logger.info(`Playing music: ${musicId}`);
     } catch (error) {
       this.logger.warn(`Failed to play music: ${musicId}`, error);

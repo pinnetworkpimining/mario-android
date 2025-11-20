@@ -18,12 +18,15 @@ export class InteractiveEnemy {
   private deathTimer: number = 0;
   private detectionRange: number;
   private lastShootTime: number = 0;
+  private velocityX: number = 50;
+  private patrolDistance: number = 0;
+  private maxPatrolDistance: number = 200;
 
   constructor(x: number, y: number, type: EnemyType) {
     this.x = x;
     this.y = y;
     this.type = type;
-    
+
     // Set properties based on enemy type
     switch (type) {
       case 'SHOOTER':
@@ -43,7 +46,7 @@ export class InteractiveEnemy {
         this.maxHealth = 2;
         break;
     }
-    
+
     this.shootCooldown = this.maxShootCooldown;
   }
 
@@ -60,6 +63,16 @@ export class InteractiveEnemy {
       this.animationTimer = 0;
     }
 
+    // Movement Logic (Patrol)
+    const dt = deltaTime / 1000;
+    this.x += this.velocityX * dt;
+    this.patrolDistance += Math.abs(this.velocityX * dt);
+
+    if (this.patrolDistance >= this.maxPatrolDistance) {
+      this.velocityX *= -1;
+      this.patrolDistance = 0;
+    }
+
     // Update shoot cooldown
     if (this.shootCooldown > 0) {
       this.shootCooldown -= deltaTime;
@@ -73,9 +86,9 @@ export class InteractiveEnemy {
 
     if (this.defeated) {
       ctx.globalAlpha = Math.max(0, this.deathTimer / 1000);
-      ctx.translate(this.x + this.width/2, this.y + this.height/2);
+      ctx.translate(this.x + this.width / 2, this.y + this.height / 2);
       ctx.rotate((1000 - this.deathTimer) * 0.01);
-      ctx.translate(-this.width/2, -this.height/2);
+      ctx.translate(-this.width / 2, -this.height / 2);
     }
 
     this.renderByType(ctx);
@@ -90,7 +103,7 @@ export class InteractiveEnemy {
     if (false) { // Set to true for debugging
       ctx.strokeStyle = 'rgba(255, 0, 0, 0.3)';
       ctx.beginPath();
-      ctx.arc(this.x + this.width/2, this.y + this.height/2, this.detectionRange, 0, Math.PI * 2);
+      ctx.arc(this.x + this.width / 2, this.y + this.height / 2, this.detectionRange, 0, Math.PI * 2);
       ctx.stroke();
     }
   }
@@ -115,18 +128,18 @@ export class InteractiveEnemy {
     // Main body - red theme
     ctx.fillStyle = '#FF4500';
     ctx.fillRect(this.x + 8, this.y + 8, 32, 32);
-    
+
     // Weapon barrel
     ctx.fillStyle = '#8B0000';
     ctx.fillRect(this.x + 40, this.y + 20, 12, 8);
-    
+
     // Core
     ctx.fillStyle = '#FF0000';
     ctx.shadowColor = '#FF0000';
     ctx.shadowBlur = 10 * pulse;
     ctx.fillRect(this.x + 16, this.y + 16, 16, 16);
     ctx.shadowBlur = 0;
-    
+
     // Eyes
     ctx.fillStyle = '#FFFF00';
     ctx.fillRect(this.x + 12, this.y + 12, 4, 4);
@@ -137,18 +150,18 @@ export class InteractiveEnemy {
     // Main body - orange theme, larger
     ctx.fillStyle = '#FF8C00';
     ctx.fillRect(this.x + 4, this.y + 4, 40, 40);
-    
+
     // Bomb compartment
     ctx.fillStyle = '#8B4513';
     ctx.fillRect(this.x + 12, this.y + 32, 24, 12);
-    
+
     // Core - pulsing
     ctx.fillStyle = '#FF4500';
     ctx.shadowColor = '#FF4500';
     ctx.shadowBlur = 15 * pulse;
     ctx.fillRect(this.x + 14, this.y + 14, 20, 20);
     ctx.shadowBlur = 0;
-    
+
     // Warning lights
     if (Math.floor(Date.now() / 300) % 2) {
       ctx.fillStyle = '#FF0000';
@@ -161,22 +174,22 @@ export class InteractiveEnemy {
     // Main body - purple theme, sleeker
     ctx.fillStyle = '#8A2BE2';
     ctx.fillRect(this.x + 12, this.y + 12, 24, 24);
-    
+
     // Long barrel
     ctx.fillStyle = '#4B0082';
     ctx.fillRect(this.x + 36, this.y + 20, 20, 8);
-    
+
     // Scope
     ctx.fillStyle = '#000000';
     ctx.fillRect(this.x + 40, this.y + 16, 12, 4);
-    
+
     // Core
     ctx.fillStyle = '#9370DB';
     ctx.shadowColor = '#9370DB';
     ctx.shadowBlur = 8 * pulse;
     ctx.fillRect(this.x + 18, this.y + 18, 12, 12);
     ctx.shadowBlur = 0;
-    
+
     // Laser sight
     if (this.shootCooldown < 1000) {
       ctx.strokeStyle = '#FF0000';
@@ -193,11 +206,11 @@ export class InteractiveEnemy {
     const barHeight = 4;
     const barX = this.x + 4;
     const barY = this.y - 8;
-    
+
     // Background
     ctx.fillStyle = '#333333';
     ctx.fillRect(barX, barY, barWidth, barHeight);
-    
+
     // Health
     const healthPercent = this.health / this.maxHealth;
     ctx.fillStyle = healthPercent > 0.5 ? '#00FF00' : '#FF0000';
