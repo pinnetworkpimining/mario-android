@@ -15,6 +15,8 @@ export class Turtle {
   private shellMode: boolean = false;
   private deathTimer: number = 0;
   private isDying: boolean = false;
+  private patrolDistance: number = 0;
+  private maxPatrolDistance: number = 200;
 
   constructor(x: number, y: number) {
     this.x = x;
@@ -35,18 +37,18 @@ export class Turtle {
       if (this.stunnedTimer <= 0) {
         this.isStunned = false;
         this.shellMode = false;
+        this.velocityX = -80; // Resume moving
       }
       return;
     }
 
-    // Move horizontally
+    // Move horizontally with patrol logic
     this.x += this.velocityX * dt;
+    this.patrolDistance += Math.abs(this.velocityX * dt);
 
-    // Keep turtle on screen (dynamic width)
-    const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
-    const maxWidth = canvas ? canvas.width / (window.devicePixelRatio || 1) : 1900;
-    if (this.x < 0 || this.x + this.width > maxWidth) {
-      this.velocityX *= -1; // Reverse direction
+    if (this.patrolDistance >= this.maxPatrolDistance) {
+      this.velocityX *= -1;
+      this.patrolDistance = 0;
     }
 
     // Update animation
@@ -62,24 +64,24 @@ export class Turtle {
     const scale = Math.min(window.innerWidth / 1900, window.innerHeight / 900);
     const scaledWidth = this.width * Math.max(scale, 0.8);
     const scaledHeight = this.height * Math.max(scale, 0.8);
-    
+
     ctx.save();
-    
+
     if (this.isDying) {
       ctx.globalAlpha = Math.max(0, this.deathTimer / 1000);
-      ctx.translate(this.x + scaledWidth/2, this.y + scaledHeight/2);
+      ctx.translate(this.x + scaledWidth / 2, this.y + scaledHeight / 2);
       ctx.rotate((1000 - this.deathTimer) * 0.01);
-      ctx.translate(-scaledWidth/2, -scaledHeight/2);
+      ctx.translate(-scaledWidth / 2, -scaledHeight / 2);
     }
-    
+
     if (this.shellMode || this.isStunned) {
       this.renderShell(ctx, scale, scaledWidth, scaledHeight);
     } else {
       this.renderNormalTurtle(ctx, scale, scaledWidth, scaledHeight);
     }
-    
+
     ctx.restore();
-    
+
     // Render health indicator
     if (this.health < this.maxHealth && !this.isDying) {
       this.renderHealthIndicator(ctx, scale);
@@ -92,11 +94,11 @@ export class Turtle {
     // Main body
     ctx.fillStyle = '#228B22'; // Forest green
     ctx.fillRect(this.x + 4 * scale, this.y + 8 * scale + walkOffset, 24 * scale, 16 * scale);
-    
+
     // Shell with pattern
     ctx.fillStyle = '#8B4513'; // Saddle brown
     ctx.fillRect(this.x + 2 * scale, this.y + 6 * scale, 28 * scale, 20 * scale);
-    
+
     // Shell pattern
     ctx.fillStyle = '#A0522D';
     for (let i = 0; i < 3; i++) {
@@ -109,16 +111,16 @@ export class Turtle {
         );
       }
     }
-    
+
     // Head
     ctx.fillStyle = '#32CD32'; // Lime green
     ctx.fillRect(this.x + 26 * scale, this.y + 12 * scale, 8 * scale, 8 * scale);
-    
+
     // Eyes
     ctx.fillStyle = '#000000';
     ctx.fillRect(this.x + 28 * scale, this.y + 14 * scale, 2 * scale, 2 * scale);
     ctx.fillRect(this.x + 31 * scale, this.y + 14 * scale, 2 * scale, 2 * scale);
-    
+
     // Legs with walking animation
     ctx.fillStyle = '#228B22';
     const legOffset = Math.sin(this.animationFrame * Math.PI) * 2 * scale;
@@ -143,7 +145,7 @@ export class Turtle {
         4 * scale
       );
     }
-    
+
     // Spinning effect when stunned
     if (this.isStunned && Math.floor(Date.now() / 100) % 2) {
       ctx.fillStyle = '#FFD700';
@@ -156,11 +158,11 @@ export class Turtle {
     const barHeight = 3 * scale;
     const barX = this.x + 6 * scale;
     const barY = this.y - 6 * scale;
-    
+
     // Background
     ctx.fillStyle = '#333333';
     ctx.fillRect(barX, barY, barWidth, barHeight);
-    
+
     // Health bar
     const healthPercent = this.health / this.maxHealth;
     ctx.fillStyle = healthPercent > 0.5 ? '#00FF00' : '#FF0000';
