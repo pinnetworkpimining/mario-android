@@ -24,8 +24,32 @@ describe('Level', () => {
   it('should render without errors', () => {
     const mockCtx = {
       fillRect: vi.fn(),
+      strokeRect: vi.fn(),
       fillStyle: '',
+      strokeStyle: '',
+      lineWidth: 1,
       canvas: { width: 800, height: 600 },
+      save: vi.fn(),
+      restore: vi.fn(),
+      translate: vi.fn(),
+      scale: vi.fn(),
+      beginPath: vi.fn(),
+      moveTo: vi.fn(),
+      lineTo: vi.fn(),
+      arc: vi.fn(),
+      fill: vi.fn(),
+      stroke: vi.fn(),
+      createLinearGradient: vi.fn(() => ({
+        addColorStop: vi.fn()
+      })),
+      globalAlpha: 1,
+      shadowColor: '',
+      shadowBlur: 0,
+      fillText: vi.fn(),
+      strokeText: vi.fn(),
+      font: '',
+      textAlign: '',
+      textBaseline: ''
     } as any
 
     expect(() => level.render(mockCtx)).not.toThrow()

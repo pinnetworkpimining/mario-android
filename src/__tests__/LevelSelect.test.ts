@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 
 // Mock Web Audio API
 const mockAudioContext = {
@@ -26,7 +26,6 @@ const mockAudioContext = {
 global.AudioContext = vi.fn(() => mockAudioContext) as any
   ; (global as any).webkitAudioContext = vi.fn(() => mockAudioContext) as any
 
-
 // Mock DOM elements
 const mockLevelSelectMenu = {
   style: { display: 'none' },
@@ -39,10 +38,15 @@ const mockMainMenu = {
 }
 
 describe('Level Select Menu', () => {
-
-
-
   it('should show level select menu when called', () => {
+    // Mock document.getElementById
+    const mockGetElementById = vi.fn((id: string) => {
+      if (id === 'mainMenu') return mockMainMenu
+      if (id === 'levelSelectMenu') return mockLevelSelectMenu
+      return null
+    })
+    global.document.getElementById = mockGetElementById as any
+
     // Simulate showLevelSelect function
     const showLevelSelect = () => {
       const mainMenu = document.getElementById('mainMenu')
@@ -57,6 +61,14 @@ describe('Level Select Menu', () => {
   })
 
   it('should return to main menu when back is pressed', () => {
+    // Mock document.getElementById
+    const mockGetElementById = vi.fn((id: string) => {
+      if (id === 'mainMenu') return mockMainMenu
+      if (id === 'levelSelectMenu') return mockLevelSelectMenu
+      return null
+    })
+    global.document.getElementById = mockGetElementById as any
+
     const backToMainMenu = () => {
       const mainMenu = document.getElementById('mainMenu')
       const levelSelectMenu = document.getElementById('levelSelectMenu')

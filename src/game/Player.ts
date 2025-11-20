@@ -30,14 +30,14 @@ export class Player {
   constructor(x: number, y: number) {
     this.x = x;
     this.y = y;
-    this.gameWidth = window.innerWidth;
-    this.gameHeight = window.innerHeight;
+    this.gameWidth = typeof window !== 'undefined' ? window.innerWidth : 1900;
+    this.gameHeight = typeof window !== 'undefined' ? window.innerHeight : 900;
     // Initialize audio manager
     this.audioManager = new AudioManager();
   }
 
   public update(deltaTime: number, inputSystem: InputSystem): void {
-    const dt = deltaTime;
+    const dt = deltaTime / 1000; // Convert milliseconds to seconds
 
     // Update invulnerability
     if (this.invulnerable) {
