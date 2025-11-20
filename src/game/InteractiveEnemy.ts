@@ -18,9 +18,9 @@ export class InteractiveEnemy {
   private deathTimer: number = 0;
   private detectionRange: number;
   private lastShootTime: number = 0;
-  private velocityX: number = 50;
+  private velocityX: number = 100; // Increased from 50 for more visible movement
   private patrolDistance: number = 0;
-  private maxPatrolDistance: number = 200;
+  private maxPatrolDistance: number = 300; // Increased from 200
 
   constructor(x: number, y: number, type: EnemyType) {
     this.x = x;
