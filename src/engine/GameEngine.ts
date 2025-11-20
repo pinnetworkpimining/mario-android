@@ -26,7 +26,7 @@ export class GameEngine {
   private config: GameConfig;
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
-  
+
   // Core Systems
   private audioSystem: AudioSystem;
   private inputSystem: InputSystem;
@@ -34,7 +34,7 @@ export class GameEngine {
   private physicsSystem: PhysicsSystem;
   private sceneManager: SceneManager;
   private assetManager: AssetManager;
-  
+
   // Game Loop
   private isRunning: boolean = false;
   private lastTime: number = 0;
@@ -48,10 +48,10 @@ export class GameEngine {
     this.ctx = canvas.getContext('2d')!;
     this.config = config;
     this.logger = Logger.getInstance();
-    
+
     this.initializeSystems();
     this.setupCanvas();
-    
+
     this.logger.info('GameEngine initialized', { config });
   }
 
@@ -64,7 +64,7 @@ export class GameEngine {
 
   private initializeSystems(): void {
     this.logger.info('Initializing game systems...');
-    
+
     try {
       this.assetManager = new AssetManager();
       this.audioSystem = new AudioSystem();
@@ -72,7 +72,7 @@ export class GameEngine {
       this.renderSystem = new RenderSystem(this.ctx, this.config);
       this.physicsSystem = new PhysicsSystem();
       this.sceneManager = new SceneManager(this);
-      
+
       this.logger.info('All systems initialized successfully');
     } catch (error) {
       this.logger.error('Failed to initialize systems', error);
@@ -83,18 +83,18 @@ export class GameEngine {
   private setupCanvas(): void {
     const { width, height } = this.config;
     const dpr = window.devicePixelRatio || 1;
-    
+
     // Set actual canvas size
     this.canvas.width = width * dpr;
     this.canvas.height = height * dpr;
-    
+
     // Set display size
     this.canvas.style.width = width + 'px';
     this.canvas.style.height = height + 'px';
-    
+
     // Scale context for high DPI
     this.ctx.scale(dpr, dpr);
-    
+
     this.logger.info('Canvas setup complete', { width, height, dpr });
   }
 
@@ -103,11 +103,11 @@ export class GameEngine {
       this.logger.warn('Game engine already running');
       return;
     }
-    
+
     this.isRunning = true;
     this.lastTime = performance.now();
     this.gameLoop(this.lastTime);
-    
+
     this.logger.info('Game engine started');
   }
 
@@ -120,7 +120,7 @@ export class GameEngine {
     if (!this.isRunning) return;
 
     // Calculate delta time
-    this.deltaTime = Math.min((currentTime - this.lastTime) / 1000, 1/30); // Cap at 30fps minimum
+    this.deltaTime = Math.min((currentTime - this.lastTime) / 1000, 1 / 30); // Cap at 30fps minimum
     this.lastTime = currentTime;
 
     // Update FPS counter
@@ -129,10 +129,10 @@ export class GameEngine {
     try {
       // Update all systems
       this.update(this.deltaTime);
-      
+
       // Render frame
       this.render();
-      
+
     } catch (error) {
       this.logger.error('Error in game loop', error);
     }
@@ -146,16 +146,16 @@ export class GameEngine {
     this.inputSystem.update(deltaTime);
     this.physicsSystem.update(deltaTime);
     this.sceneManager.update(deltaTime);
-    this.audioSystem.update(deltaTime);
+    // this.audioSystem.update(deltaTime); // AudioSystem no longer needs update
   }
 
   private render(): void {
     // Clear canvas
     this.renderSystem.clear();
-    
+
     // Render current scene
     this.sceneManager.render(this.renderSystem);
-    
+
     // Render debug info if enabled
     if (this.config.debug) {
       this.renderDebugInfo();
@@ -165,7 +165,7 @@ export class GameEngine {
   private updateFPS(): void {
     this.frameCount++;
     this.fpsTimer += this.deltaTime;
-    
+
     if (this.fpsTimer >= 1.0) {
       this.fps = this.frameCount;
       this.frameCount = 0;

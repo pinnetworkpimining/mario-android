@@ -51,12 +51,12 @@ describe('GameEngine', () => {
   beforeEach(() => {
     // Reset singleton
     (GameEngine as any).instance = null
-    
+
     // Mock window dimensions
     Object.defineProperty(window, 'innerWidth', { value: 800, writable: true })
     Object.defineProperty(window, 'innerHeight', { value: 600, writable: true })
     Object.defineProperty(window, 'devicePixelRatio', { value: 1, writable: true })
-    
+
     const config = {
       width: 800,
       height: 600,
@@ -64,7 +64,7 @@ describe('GameEngine', () => {
       debug: false,
       mobile: false
     }
-    
+
     engine = GameEngine.getInstance(mockCanvas, config)
   })
 
@@ -134,7 +134,7 @@ describe('Game Legacy', () => {
   it('should handle game state changes', () => {
     mockGame.gameRunning = true
     expect(mockGame.gameRunning).toBe(true)
-    
+
     mockGame.paused = true
     expect(mockGame.paused).toBe(true)
   })
@@ -142,7 +142,7 @@ describe('Game Legacy', () => {
   it('should track score and lives', () => {
     mockGame.score += 100
     expect(mockGame.score).toBe(100)
-    
+
     mockGame.lives -= 1
     expect(mockGame.lives).toBe(2)
   })
@@ -150,7 +150,7 @@ describe('Game Legacy', () => {
   it('should handle level progression', () => {
     mockGame.currentLevel = 2
     expect(mockGame.currentLevel).toBe(2)
-    
+
     mockGame.currentLevel = 3
     expect(mockGame.currentLevel).toBe(3)
   })
@@ -162,7 +162,7 @@ describe('GameEngine Integration', () => {
 
   beforeEach(() => {
     (GameEngine as any).instance = null
-    
+
     const config = {
       width: 800,
       height: 600,
@@ -170,7 +170,7 @@ describe('GameEngine Integration', () => {
       debug: false,
       mobile: false
     }
-    
+
     engine = GameEngine.getInstance(mockCanvas, config)
   })
 
@@ -217,7 +217,7 @@ describe('GameEngine Performance', () => {
 
   beforeEach(() => {
     (GameEngine as any).instance = null
-    
+
     const config = {
       width: 800,
       height: 600,
@@ -225,29 +225,29 @@ describe('GameEngine Performance', () => {
       debug: true,
       mobile: false
     }
-    
+
     engine = GameEngine.getInstance(mockCanvas, config)
   })
 
   it('should maintain stable FPS tracking', () => {
     // Simulate multiple frame updates
     for (let i = 0; i < 10; i++) {
-      engine.getAudioSystem().update(16)
+      // engine.getAudioSystem().update(16) // AudioSystem no longer has update
       engine.getInputSystem().update(16)
       engine.getPhysicsSystem().update(16)
     }
-    
+
     const fps = engine.getFPS()
     expect(fps).toBeGreaterThanOrEqual(0)
   })
 
   it('should handle system updates without errors', () => {
     expect(() => {
-      engine.getAudioSystem().update(16)
+      // engine.getAudioSystem().update(16) // AudioSystem no longer has update
       engine.getInputSystem().update(16)
       engine.getRenderSystem().clear()
       engine.getPhysicsSystem().update(16)
     })
-    .not.toThrow()
+      .not.toThrow()
   })
 })

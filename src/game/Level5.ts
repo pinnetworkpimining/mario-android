@@ -255,7 +255,7 @@ export class Level5 extends Level2 {
     }
   }
 
-  private showVictoryMessage(): void {
+  protected showVictoryMessage(): void {
     const message = document.createElement('div');
     message.className = 'game-message';
     message.innerHTML = `

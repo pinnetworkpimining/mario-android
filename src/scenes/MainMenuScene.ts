@@ -41,7 +41,7 @@ export class MainMenuScene implements Scene {
     this.engine.getInputSystem().on('keydown', this.keyDownHandler);
 
     // Start background music
-    this.engine.getAudioSystem().playMusic();
+    this.engine.getAudioSystem().playMusic('bgmusic');
   }
 
   public async unload(): Promise<void> {

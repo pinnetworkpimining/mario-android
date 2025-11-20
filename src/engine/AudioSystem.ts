@@ -105,7 +105,7 @@ export class AudioSystem {
     }
   }
 
-  private playLoadedSound(name: string): void {
+  public playLoadedSound(name: string): void {
     const buffer = this.loadedSounds.get(name);
     if (buffer) {
       const source = this.audioContext.createBufferSource();
