@@ -49,7 +49,8 @@ describe('Level', () => {
       strokeText: vi.fn(),
       font: '',
       textAlign: '',
-      textBaseline: ''
+      textBaseline: '',
+      closePath: vi.fn()
     } as any
 
     expect(() => level.render(mockCtx)).not.toThrow()

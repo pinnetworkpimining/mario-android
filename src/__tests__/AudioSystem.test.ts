@@ -15,7 +15,23 @@ const mockAudioContext = {
   })),
   createGain: vi.fn(() => ({
     connect: vi.fn(),
-    gain: { value: 1 }
+    gain: {
+      value: 1,
+      setValueAtTime: vi.fn(),
+      exponentialRampToValueAtTime: vi.fn(),
+      linearRampToValueAtTime: vi.fn()
+    }
+  })),
+  createOscillator: vi.fn(() => ({
+    connect: vi.fn(),
+    start: vi.fn(),
+    stop: vi.fn(),
+    frequency: {
+      setValueAtTime: vi.fn(),
+      exponentialRampToValueAtTime: vi.fn(),
+      linearRampToValueAtTime: vi.fn()
+    },
+    type: 'sine'
   })),
   destination: {},
   sampleRate: 44100,

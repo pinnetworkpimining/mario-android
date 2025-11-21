@@ -34,15 +34,21 @@ describe('InteractiveEnemy', () => {
 
   it('should take damage and be defeated', () => {
     expect(shooter.isDefeated()).toBe(false)
-    
+
     // Shooter has 3 health
     shooter.takeDamage()
     expect(shooter.isDefeated()).toBe(false)
-    
+
     shooter.takeDamage()
     expect(shooter.isDefeated()).toBe(false)
-    
+
     shooter.takeDamage()
+
+    // Should stop shooting immediately
+    expect(shooter.shouldShoot()).toBe(false)
+
+    // Advance time to finish death animation (1000ms)
+    shooter.update(1100)
     expect(shooter.isDefeated()).toBe(true)
   })
 
