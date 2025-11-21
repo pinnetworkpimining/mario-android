@@ -6,6 +6,8 @@ import { FinishFlag } from './FinishFlag';
 import { InteractiveEnemy } from './InteractiveEnemy';
 import { Projectile } from './Projectile';
 import { Player } from './Player';
+import { Game } from './Game';
+import { GameEngine } from '../engine/GameEngine';
 
 export class Level6 extends Level2 {
   protected interactiveEnemies: InteractiveEnemy[] = [];
@@ -204,10 +206,12 @@ export class Level6 extends Level2 {
           // Player defeats enemy by jumping on it
           enemy.takeDamage();
           player.setVelocityY(-200);
+          GameEngine.getInstance().getScreenShake().shake(5, 200);
           this.particleSystem.addExplosion(enemyBounds.x + enemyBounds.width / 2, enemyBounds.y + enemyBounds.height / 2, '#FF4500');
         } else {
           // Player takes damage
-          player.loseLife();
+          player.takeDamage();
+          GameEngine.getInstance().getScreenShake().shake(10, 300);
         }
       }
 
@@ -226,7 +230,8 @@ export class Level6 extends Level2 {
         playerBounds.y + playerBounds.height > projectileBounds.y
       ) {
         // Player hit by projectile
-        player.loseLife();
+        player.takeDamage();
+        GameEngine.getInstance().getScreenShake().shake(5, 200);
         this.particleSystem.addExplosion(projectileBounds.x, projectileBounds.y, '#FF0000');
         return false; // Remove projectile
       }

@@ -1,24 +1,29 @@
 import { Player } from './Player';
 import { Turtle } from './Turtle';
 import { Game } from './Game';
+import { GameEngine } from '../engine/GameEngine';
 import { BaseLevel } from './BaseLevel';
 import { FinishFlag } from './FinishFlag';
 import { PowerUp, PowerUpType } from './PowerUp';
 import { ParticleSystem } from './ParticleSystem';
 
 export class Level extends BaseLevel {
-  protected platforms: Array<{ x: number, y: number, width: number, height: number }> = [];
+  protected platforms: any[] = [];
   protected turtles: Turtle[] = [];
   protected gameRunning: boolean = true;
   protected finishFlag: FinishFlag | null = null;
   protected powerUps: PowerUp[] = [];
-  protected particleSystem: ParticleSystem = new ParticleSystem();
-  protected levelWidth: number = 0;
-  protected levelHeight: number = 0;
+  protected particleSystem: ParticleSystem;
+  protected levelWidth: number = 2400;
+  protected levelHeight: number = 600;
   protected player: Player | null = null;
 
   constructor() {
     super();
+    this.levelWidth = 4000; // Extended level width
+    this.levelHeight = typeof window !== 'undefined' ? window.innerHeight : 900;
+    this.particleSystem = new ParticleSystem();
+
     this.createLevel();
     this.spawnTurtles();
     this.spawnPowerUps();
@@ -27,82 +32,46 @@ export class Level extends BaseLevel {
 
   public setPlayer(player: Player): void {
     this.player = player;
+    player.setParticleSystem(this.particleSystem);
+    player.setAudioSystem(GameEngine.getInstance().getAudioSystem());
   }
 
   protected createLevel(): void {
-    // Mobile landscape optimized level
-    const width = window.innerWidth;
-    const height = window.innerHeight;
+    const width = this.levelWidth;
+    const height = this.levelHeight;
+    const groundHeight = Math.round(height * 0.15);
+    const groundY = height - groundHeight;
 
-    this.levelWidth = width * 4; // Shorter for better pacing
-    this.levelHeight = height;
+    // Ground segments with gaps
+    this.platforms.push({ x: 0, y: groundY, width: width * 0.2, height: groundHeight });
+    this.platforms.push({ x: width * 0.25, y: groundY, width: width * 0.3, height: groundHeight });
+    this.platforms.push({ x: width * 0.6, y: groundY, width: width * 0.4, height: groundHeight });
 
-    // Ground platform - mobile optimized with gaps
-    const groundHeight = Math.round(height * 0.15); // Thicker ground for mobile
+    // Elevated platforms
+    this.platforms.push({ x: width * 0.1, y: height * 0.65, width: width * 0.1, height: 20 });
+    this.platforms.push({ x: width * 0.3, y: height * 0.5, width: width * 0.1, height: 20 });
+    this.platforms.push({ x: width * 0.5, y: height * 0.4, width: width * 0.1, height: 20 });
+    this.platforms.push({ x: width * 0.7, y: height * 0.55, width: width * 0.1, height: 20 });
 
-    // Segment 1: Start area
-    this.platforms.push({ x: 0, y: height - groundHeight, width: width * 0.8, height: groundHeight });
-
-    // Gap 1 (width * 0.2)
-
-    // Segment 2: After first gap
-    this.platforms.push({ x: width * 1.0, y: height - groundHeight, width: width * 0.5, height: groundHeight });
-
-    // Gap 2 (width * 0.2)
-
-    // Segment 3: Middle section
-    this.platforms.push({ x: width * 1.7, y: height - groundHeight, width: width * 0.8, height: groundHeight });
-
-    // Segment 4: End section
-    this.platforms.push({ x: width * 2.8, y: height - groundHeight, width: width * 1.2, height: groundHeight });
-
-    // Mobile-friendly platform spacing
-    const platformHeight = Math.max(30, height * 0.04); // Bigger platforms for mobile
-
-    // First section - easy jumps
-    this.platforms.push({ x: width * 0.3, y: height * 0.7, width: width * 0.15, height: platformHeight });
-    this.platforms.push({ x: width * 0.6, y: height * 0.6, width: width * 0.15, height: platformHeight });
-    this.platforms.push({ x: width * 0.9, y: height * 0.5, width: width * 0.15, height: platformHeight }); // Bridge over gap
-
-    // Second section - medium difficulty
-    this.platforms.push({ x: width * 1.3, y: height * 0.65, width: width * 0.12, height: platformHeight });
-    this.platforms.push({ x: width * 1.6, y: height * 0.55, width: width * 0.12, height: platformHeight }); // Bridge over gap
-
-    // Vertical obstacles (Pipes)
-    const pipeWidth = width * 0.05;
-    const pipeHeight1 = height * 0.2;
-    const pipeHeight2 = height * 0.3;
-
-    this.platforms.push({ x: width * 0.5, y: height - groundHeight - pipeHeight1, width: pipeWidth, height: pipeHeight1 });
-    this.platforms.push({ x: width * 2.0, y: height - groundHeight - pipeHeight2, width: pipeWidth, height: pipeHeight2 });
-    this.platforms.push({ x: width * 3.0, y: height - groundHeight - pipeHeight1, width: pipeWidth, height: pipeHeight1 });
-
-    // Third section - getting harder
-    this.platforms.push({ x: width * 2.3, y: height * 0.6, width: width * 0.12, height: platformHeight });
-    this.platforms.push({ x: width * 2.7, y: height * 0.5, width: width * 0.12, height: platformHeight });
-
-    // Final section leading to flag  
-    this.platforms.push({ x: width * 3.2, y: height * 0.4, width: width * 0.20, height: platformHeight });
+    // Pipes (vertical obstacles)
+    this.platforms.push({ x: width * 0.4, y: groundY - 60, width: 40, height: 60 });
+    this.platforms.push({ x: width * 0.8, y: groundY - 90, width: 40, height: 90 });
   }
 
   protected spawnTurtles(): void {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-    const groundHeight = Math.round(height * 0.15);
-    const groundY = height - groundHeight - 64; // 64 = turtle height for mobile
+    const width = this.levelWidth;
+    const height = this.levelHeight;
+    const groundY = height - Math.round(height * 0.15);
 
-    // Fewer but better positioned enemies for mobile
-    this.turtles.push(new Turtle(width * 0.5, groundY));
-    this.turtles.push(new Turtle(width * 1.2, groundY));
-    this.turtles.push(new Turtle(width * 2.1, groundY));
-    this.turtles.push(new Turtle(width * 3.2, groundY));
-    this.turtles.push(new Turtle(width * 3.8, groundY));
+    // Spawn turtles on ground and platforms
+    this.turtles.push(new Turtle(width * 0.3, groundY - 40));
+    this.turtles.push(new Turtle(width * 0.7, groundY - 40));
+    this.turtles.push(new Turtle(width * 0.5, height * 0.4 - 40));
   }
 
   protected spawnPowerUps(): void {
-    const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
-    const width = canvas ? canvas.width / (window.devicePixelRatio || 1) : 1900;
-    const height = canvas ? canvas.height / (window.devicePixelRatio || 1) : 900;
+    const width = this.levelWidth;
+    const height = this.levelHeight;
 
     // Place power-ups on platforms and around the level
     this.powerUps.push(new PowerUp(width * 0.15, height * 0.60, PowerUpType.HEALTH));
@@ -115,16 +84,16 @@ export class Level extends BaseLevel {
   }
 
   protected spawnFinishFlag(): void {
-    const width = window.innerWidth;
-    const height = window.innerHeight;
+    const width = this.levelWidth;
+    const height = this.levelHeight;
     const groundY = height - Math.round(height * 0.15);
 
-    // Place finish flag at the end of the level - mobile optimized
-    this.finishFlag = new FinishFlag(width * 3.8, groundY - 60);
+    // Place finish flag at the end of the level
+    this.finishFlag = new FinishFlag(width * 0.95, groundY - 60);
   }
 
   public update(deltaTime: number): void {
-    if (!this.gameRunning) return; // Skip update if game is not running
+    if (!this.gameRunning) return;
 
     this.turtles.forEach(turtle => turtle.update(deltaTime));
     this.powerUps.forEach(powerUp => powerUp.update(deltaTime));
@@ -156,8 +125,7 @@ export class Level extends BaseLevel {
     this.renderCyberGrid(ctx);
 
     // Draw platforms
-    this.platforms.forEach((platform, idx) => {
-      // Check if it's a ground segment or pipe
+    this.platforms.forEach((platform) => {
       const groundHeight = Math.round(window.innerHeight * 0.15);
       if (platform.y >= window.innerHeight - groundHeight) {
         this.renderGround(ctx, platform);
@@ -185,7 +153,6 @@ export class Level extends BaseLevel {
     ctx.strokeStyle = 'rgba(0, 255, 255, 0.1)';
     ctx.lineWidth = 1;
 
-    // Vertical lines
     for (let x = 0; x < this.levelWidth; x += 100) {
       ctx.beginPath();
       ctx.moveTo(x, 0);
@@ -193,7 +160,6 @@ export class Level extends BaseLevel {
       ctx.stroke();
     }
 
-    // Horizontal lines
     for (let y = 0; y < window.innerHeight; y += 100) {
       ctx.beginPath();
       ctx.moveTo(0, y);
@@ -203,7 +169,6 @@ export class Level extends BaseLevel {
   }
 
   private renderGround(ctx: CanvasRenderingContext2D, platform: any): void {
-    // Cyber ground
     const gradient = ctx.createLinearGradient(0, platform.y, 0, window.innerHeight);
     gradient.addColorStop(0, '#00ffff');
     gradient.addColorStop(0.3, '#0066cc');
@@ -212,7 +177,6 @@ export class Level extends BaseLevel {
     ctx.fillStyle = gradient;
     ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
 
-    // Add cyber energy lines
     ctx.strokeStyle = '#00ffff';
     ctx.lineWidth = 2;
     for (let i = platform.x; i < platform.x + platform.width; i += 20) {
@@ -224,16 +188,13 @@ export class Level extends BaseLevel {
   }
 
   private renderPlatform(ctx: CanvasRenderingContext2D, platform: any): void {
-    // Cyber platform
     ctx.fillStyle = '#0f3460';
     ctx.fillRect(platform.x, platform.y, platform.width, platform.height);
 
-    // Neon border
     ctx.strokeStyle = '#00ffff';
     ctx.lineWidth = 2;
     ctx.strokeRect(platform.x, platform.y, platform.width, platform.height);
 
-    // Glow effect
     ctx.shadowColor = '#00ffff';
     ctx.shadowBlur = 10;
     ctx.fillStyle = 'rgba(0, 255, 255, 0.2)';
@@ -253,7 +214,6 @@ export class Level extends BaseLevel {
         playerBounds.y < platform.y + platform.height &&
         playerBounds.y + playerBounds.height > platform.y
       ) {
-        // Collision detected
         const overlapX = Math.min(
           playerBounds.x + playerBounds.width - platform.x,
           platform.x + platform.width - playerBounds.x
@@ -264,7 +224,6 @@ export class Level extends BaseLevel {
         );
 
         if (overlapX < overlapY) {
-          // Horizontal collision
           if (playerBounds.x < platform.x) {
             player.x = platform.x - playerBounds.width;
           } else {
@@ -272,12 +231,16 @@ export class Level extends BaseLevel {
           }
           player.setVelocityX(0);
         } else {
-          // Vertical collision
           if (playerBounds.y < platform.y) {
             player.y = platform.y - playerBounds.height;
             player.setVelocityY(0);
             player.setOnGround(true);
             onGround = true;
+
+            // Landing impact effect
+            if (this.particleSystem && player.getVelocityY() > 300) {
+              this.particleSystem.addLandingImpact(player.x + playerBounds.width / 2, player.y + playerBounds.height);
+            }
           } else {
             player.y = platform.y + platform.height;
             player.setVelocityY(0);
@@ -286,13 +249,9 @@ export class Level extends BaseLevel {
       }
     });
 
-    if (!onGround) {
-      player.setOnGround(false);
-    }
-
     // Turtle collisions
-    this.turtles.forEach(turtle => {
-      if (turtle.isDefeated()) return;
+    this.turtles = this.turtles.filter(turtle => {
+      if (turtle.isDefeated()) return false;
 
       const turtleBounds = turtle.getBounds();
       if (
@@ -302,15 +261,19 @@ export class Level extends BaseLevel {
         playerBounds.y + playerBounds.height > turtleBounds.y
       ) {
         if (player.getVelocityY() > 0 && playerBounds.y + playerBounds.height <= turtleBounds.y + 10) {
-          // Player jumped on turtle
+          // Player defeats turtle by jumping on it
           turtle.takeDamage();
-          player.setVelocityY(-200); // Bounce
-          this.particleSystem.addExplosion(turtleBounds.x + turtleBounds.width / 2, turtleBounds.y + turtleBounds.height / 2, '#00ff00');
+          player.setVelocityY(-200);
+          GameEngine.getInstance().getScreenShake().shake(5, 200);
+          this.particleSystem.addExplosion(turtleBounds.x + turtleBounds.width / 2, turtleBounds.y + turtleBounds.height / 2, '#FFD700');
         } else {
-          // Player hit turtle
-          player.loseLife();
+          // Player takes damage
+          player.takeDamage();
+          GameEngine.getInstance().getScreenShake().shake(10, 300);
         }
       }
+
+      return true;
     });
 
     // Power-up collisions
@@ -324,15 +287,16 @@ export class Level extends BaseLevel {
         playerBounds.y < powerUpBounds.y + powerUpBounds.height &&
         playerBounds.y + playerBounds.height > powerUpBounds.y
       ) {
-        powerUp.collect();
-        this.particleSystem.addExplosion(powerUpBounds.x + powerUpBounds.width / 2, powerUpBounds.y + powerUpBounds.height / 2, '#ffff00');
+        powerUp.collect(player);
+        this.particleSystem.addPowerUpEffect(powerUpBounds.x + powerUpBounds.width / 2, powerUpBounds.y + powerUpBounds.height / 2);
         return false;
       }
+
       return true;
     });
 
     // Finish flag collision
-    if (this.finishFlag && !this.finishFlag.isCollected()) {
+    if (this.finishFlag) {
       const flagBounds = this.finishFlag.getBounds();
       if (
         playerBounds.x < flagBounds.x + flagBounds.width &&
@@ -340,58 +304,50 @@ export class Level extends BaseLevel {
         playerBounds.y < flagBounds.y + flagBounds.height &&
         playerBounds.y + playerBounds.height > flagBounds.y
       ) {
-        this.finishFlag.collect();
-        this.endGame(true);
+        this.showLevelCompleteMessage();
       }
     }
 
-    // Level boundary check
-    if (player.y > this.levelHeight) {
-      player.loseLife();
+    // Check if player fell off the map
+    if (player.y > this.levelHeight + 100) {
+      player.takeDamage();
+      player.setPosition(100, 100);
     }
-  }
-
-  public endGame(won: boolean): void {
-    this.gameRunning = false;
-    // Override in subclasses
   }
 
   protected showGameOverMessage(): void {
-    this.showMessage('GAME OVER', '#FF0000');
+    const message = document.createElement('div');
+    message.className = 'game-message';
+    message.innerHTML = `
+      <div style="font-size: 8vh; margin-bottom: 3vh;">💀 GAME OVER 💀</div>
+      <div style="font-size: 4vh;">Better luck next time!</div>
+    `;
+    document.body.appendChild(message);
   }
 
   protected showVictoryMessage(): void {
-    this.showMessage('VICTORY!', '#00FF00');
+    const message = document.createElement('div');
+    message.className = 'game-message';
+    message.innerHTML = `
+      <div style="font-size: 8vh; margin-bottom: 3vh;">🎉 VICTORY! 🎉</div>
+      <div style="font-size: 4vh;">You completed the level!</div>
+    `;
+    document.body.appendChild(message);
   }
 
-  protected showLevelCompleteMessage(text: string): void {
-    this.showMessage(text, '#00FF00');
+  protected showLevelCompleteMessage(): void {
+    const message = document.createElement('div');
+    message.className = 'game-message';
+    message.innerHTML = `
+      <div style="font-size: 8vh; margin-bottom: 3vh;">✨ LEVEL COMPLETE! ✨</div>
+      <div style="font-size: 4vh;">Proceeding to next level...</div>
+    `;
+    document.body.appendChild(message);
+    setTimeout(() => this.hideMessage(), 2000);
   }
 
   protected hideMessage(): void {
-    const message = document.getElementById('game-message');
-    if (message) {
-      message.remove();
-    }
-  }
-
-  private showMessage(text: string, color: string): void {
-    let message = document.getElementById('game-message');
-    if (!message) {
-      message = document.createElement('div');
-      message.id = 'game-message';
-      message.style.position = 'fixed';
-      message.style.top = '50%';
-      message.style.left = '50%';
-      message.style.transform = 'translate(-50%, -50%)';
-      message.style.color = color;
-      message.style.fontSize = '48px';
-      message.style.fontWeight = 'bold';
-      message.style.textShadow = '2px 2px 4px #000000';
-      message.style.zIndex = '1000';
-      document.body.appendChild(message);
-    }
-    message.textContent = text;
-    message.style.color = color;
+    const messages = document.querySelectorAll('.game-message');
+    messages.forEach(msg => msg.remove());
   }
 }

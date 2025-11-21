@@ -1,8 +1,8 @@
 export class FlyingEnemy {
   public x: number;
   public y: number;
-  private width: number = 32;
-  private height: number = 32;
+  public width: number = 32;
+  public height: number = 32;
   private velocityX: number = 120;
   private amplitude: number = 30;
   private baseY: number;

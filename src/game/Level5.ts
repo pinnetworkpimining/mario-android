@@ -6,6 +6,8 @@ import { FinishFlag } from './FinishFlag';
 import { BossMonster } from './BossMonster';
 import { Projectile } from './Projectile';
 import { Player } from './Player';
+import { Game } from './Game';
+import { GameEngine } from '../engine/GameEngine';
 
 export class Level5 extends Level2 {
   protected boss: BossMonster | null = null;
@@ -202,13 +204,16 @@ export class Level5 extends Level2 {
           // Player damages boss by jumping on it
           this.boss.takeDamage();
           player.setVelocityY(-300); // Bounce
+          GameEngine.getInstance().getScreenShake().shake(5, 200);
           if (this.boss.isDefeated()) {
             // Boss defeated, show particles
             this.particleSystem.addExplosion(bossBounds.x + bossBounds.width / 2, bossBounds.y + bossBounds.height / 2, '#ff0000');
+            GameEngine.getInstance().getScreenShake().shake(20, 1000);
           }
         } else {
           // Player takes damage from boss
-          player.loseLife();
+          player.takeDamage();
+          GameEngine.getInstance().getScreenShake().shake(10, 300);
         }
       }
     }
@@ -225,7 +230,8 @@ export class Level5 extends Level2 {
         playerBounds.y + playerBounds.height > projectileBounds.y
       ) {
         // Player hit by projectile
-        player.loseLife();
+        player.takeDamage();
+        GameEngine.getInstance().getScreenShake().shake(5, 200);
         this.particleSystem.addExplosion(projectileBounds.x, projectileBounds.y, '#FF0000');
         return false; // Remove projectile
       }

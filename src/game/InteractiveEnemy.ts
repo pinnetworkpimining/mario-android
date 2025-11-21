@@ -1,12 +1,14 @@
 import { Projectile } from './Projectile';
+import { GameEngine } from '../engine/GameEngine';
+import { ParticleSystem } from './ParticleSystem';
 
 export type EnemyType = 'SHOOTER' | 'BOMBER' | 'SNIPER';
 
 export class InteractiveEnemy {
   public x: number;
   public y: number;
-  private width: number = 48;
-  private height: number = 48;
+  public width: number = 48;
+  public height: number = 48;
   private type: EnemyType;
   private health: number = 3;
   private maxHealth: number = 3;
@@ -18,9 +20,10 @@ export class InteractiveEnemy {
   private deathTimer: number = 0;
   private detectionRange: number;
   private lastShootTime: number = 0;
-  private velocityX: number = 100; // Increased from 50 for more visible movement
+  private velocityX: number = 100;
   private patrolDistance: number = 0;
-  private maxPatrolDistance: number = 300; // Increased from 200
+  private maxPatrolDistance: number = 300;
+  protected particleSystem: ParticleSystem | null = null;
 
   constructor(x: number, y: number, type: EnemyType) {
     this.x = x;
@@ -30,24 +33,28 @@ export class InteractiveEnemy {
     // Set properties based on enemy type
     switch (type) {
       case 'SHOOTER':
-        this.maxShootCooldown = 2000; // 2 seconds
+        this.maxShootCooldown = 2000;
         this.detectionRange = 300;
         break;
       case 'BOMBER':
-        this.maxShootCooldown = 3000; // 3 seconds
+        this.maxShootCooldown = 3000;
         this.detectionRange = 200;
-        this.health = 4; // Bombers are tougher
+        this.health = 4;
         this.maxHealth = 4;
         break;
       case 'SNIPER':
-        this.maxShootCooldown = 4000; // 4 seconds
-        this.detectionRange = 500; // Long range
-        this.health = 2; // But fragile
+        this.maxShootCooldown = 4000;
+        this.detectionRange = 500;
+        this.health = 2;
         this.maxHealth = 2;
         break;
     }
 
     this.shootCooldown = this.maxShootCooldown;
+  }
+
+  public setParticleSystem(ps: ParticleSystem): void {
+    this.particleSystem = ps;
   }
 
   public update(deltaTime: number): void {
@@ -117,44 +124,30 @@ export class InteractiveEnemy {
   }
 
   private renderShooter(ctx: CanvasRenderingContext2D, pulse: number): void {
-    // Main body - red theme
     ctx.fillStyle = '#FF4500';
     ctx.fillRect(this.x + 8, this.y + 8, 32, 32);
-
-    // Weapon barrel
     ctx.fillStyle = '#8B0000';
     ctx.fillRect(this.x + 40, this.y + 20, 12, 8);
-
-    // Core
     ctx.fillStyle = '#FF0000';
     ctx.shadowColor = '#FF0000';
     ctx.shadowBlur = 10 * pulse;
     ctx.fillRect(this.x + 16, this.y + 16, 16, 16);
     ctx.shadowBlur = 0;
-
-    // Eyes
     ctx.fillStyle = '#FFFF00';
     ctx.fillRect(this.x + 12, this.y + 12, 4, 4);
     ctx.fillRect(this.x + 28, this.y + 12, 4, 4);
   }
 
   private renderBomber(ctx: CanvasRenderingContext2D, pulse: number): void {
-    // Main body - orange theme, larger
     ctx.fillStyle = '#FF8C00';
     ctx.fillRect(this.x + 4, this.y + 4, 40, 40);
-
-    // Bomb compartment
     ctx.fillStyle = '#8B4513';
     ctx.fillRect(this.x + 12, this.y + 32, 24, 12);
-
-    // Core - pulsing
     ctx.fillStyle = '#FF4500';
     ctx.shadowColor = '#FF4500';
     ctx.shadowBlur = 15 * pulse;
     ctx.fillRect(this.x + 14, this.y + 14, 20, 20);
     ctx.shadowBlur = 0;
-
-    // Warning lights
     if (Math.floor(Date.now() / 300) % 2) {
       ctx.fillStyle = '#FF0000';
       ctx.fillRect(this.x + 8, this.y + 8, 6, 6);
@@ -163,26 +156,17 @@ export class InteractiveEnemy {
   }
 
   private renderSniper(ctx: CanvasRenderingContext2D, pulse: number): void {
-    // Main body - purple theme, sleeker
     ctx.fillStyle = '#8A2BE2';
     ctx.fillRect(this.x + 12, this.y + 12, 24, 24);
-
-    // Long barrel
     ctx.fillStyle = '#4B0082';
     ctx.fillRect(this.x + 36, this.y + 20, 20, 8);
-
-    // Scope
     ctx.fillStyle = '#000000';
     ctx.fillRect(this.x + 40, this.y + 16, 12, 4);
-
-    // Core
     ctx.fillStyle = '#9370DB';
     ctx.shadowColor = '#9370DB';
     ctx.shadowBlur = 8 * pulse;
     ctx.fillRect(this.x + 18, this.y + 18, 12, 12);
     ctx.shadowBlur = 0;
-
-    // Laser sight
     if (this.shootCooldown < 1000) {
       ctx.strokeStyle = '#FF0000';
       ctx.lineWidth = 2;
@@ -198,12 +182,8 @@ export class InteractiveEnemy {
     const barHeight = 4;
     const barX = this.x + 4;
     const barY = this.y - 8;
-
-    // Background
     ctx.fillStyle = '#333333';
     ctx.fillRect(barX, barY, barWidth, barHeight);
-
-    // Health
     const healthPercent = this.health / this.maxHealth;
     ctx.fillStyle = healthPercent > 0.5 ? '#00FF00' : '#FF0000';
     ctx.fillRect(barX, barY, barWidth * healthPercent, barHeight);
@@ -215,41 +195,28 @@ export class InteractiveEnemy {
 
   public shoot(targetX: number, targetY: number): Projectile | null {
     if (!this.shouldShoot()) return null;
-
     this.shootCooldown = this.maxShootCooldown;
     this.lastShootTime = Date.now();
-
     const startX = this.x + this.width / 2;
     const startY = this.y + this.height / 2;
-
-    // Calculate direction vector
     const dx = targetX - startX;
     const dy = targetY - startY;
     const distance = Math.sqrt(dx * dx + dy * dy);
-
-    // Normalize and scale velocity
     let velX = 0;
     let velY = 0;
-
     switch (this.type) {
       case 'SHOOTER':
-        // Shoots horizontally towards player
         velX = (dx > 0 ? 1 : -1) * 300;
         velY = 0;
         return new Projectile(startX, startY, velX, velY, 'BULLET');
-
       case 'BOMBER':
-        // Lobs bomb towards player
-        velX = (dx / distance) * 200; // Horizontal speed based on distance
-        velY = -300; // Always arc up
+        velX = (dx / distance) * 200;
+        velY = -300;
         return new Projectile(startX, startY, velX, velY, 'BOMB');
-
       case 'SNIPER':
-        // Shoots directly at player, fast
         velX = (dx / distance) * 600;
         velY = (dy / distance) * 600;
         return new Projectile(startX, startY, velX, velY, 'LASER');
-
       default:
         return null;
     }
@@ -260,6 +227,10 @@ export class InteractiveEnemy {
     if (this.health <= 0) {
       this.defeated = true;
       this.deathTimer = 1000;
+      GameEngine.getInstance().getScreenShake().shake(5, 200);
+      if (this.particleSystem) {
+        this.particleSystem.addPowerUpEffect(this.x + this.width / 2, this.y + this.height / 2, '#ff0000');
+      }
     }
   }
 

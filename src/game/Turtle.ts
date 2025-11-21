@@ -1,9 +1,8 @@
-
 export class Turtle {
   public x: number;
   public y: number;
-  private width: number = 32;
-  private height: number = 32;
+  public width: number = 32;
+  public height: number = 32;
   private velocityX: number = -80;
   private animationFrame: number = 0;
   private animationTimer: number = 0;

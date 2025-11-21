@@ -3,8 +3,8 @@ import { Projectile } from './Projectile';
 export class BossMonster {
   public x: number;
   public y: number;
-  private width: number = 128;
-  private height: number = 128;
+  public width: number = 128;
+  public height: number = 128;
   private velocityX: number = -60;
   private health: number = 10;
   private maxHealth: number = 10;
@@ -209,7 +209,7 @@ export class BossMonster {
       x: this.x,
       y: this.y,
       width: this.width,
-      height: this.height
+      height: this.height,
     };
   }
 }

@@ -5,6 +5,7 @@ import { Level } from './Level';
 import { PowerUp, PowerUpType } from './PowerUp';
 import { FinishFlag } from './FinishFlag';
 import { Game } from './Game';
+import { GameEngine } from '../engine/GameEngine';
 
 export class Level2 extends Level {
   protected flyingEnemies: FlyingEnemy[] = [];
@@ -139,14 +140,15 @@ export class Level2 extends Level {
         playerBounds.y + playerBounds.height > enemyBounds.y
       ) {
         // Player loses if touching a flying enemy
-        player.loseLife();
+        player.takeDamage();
+        GameEngine.getInstance().getScreenShake().shake(5, 200);
       }
     });
   }
 
   public endGame(won: boolean): void {
     if (won) {
-      this.showLevelCompleteMessage('Level 2 Complete! Loading Level 3...');
+      this.showLevelCompleteMessage();
 
       setTimeout(() => {
         this.hideMessage();

@@ -1,3 +1,5 @@
+import { Player } from './Player';
+
 export enum PowerUpType {
   HEALTH = 'health',
   SPEED = 'speed',
@@ -8,8 +10,8 @@ export enum PowerUpType {
 export class PowerUp {
   public x: number;
   public y: number;
-  private width: number = 24;
-  private height: number = 24;
+  public width: number = 24;
+  public height: number = 24;
   private type: PowerUpType;
   private animationTimer: number = 0;
   private collected: boolean = false;
@@ -29,63 +31,86 @@ export class PowerUp {
   public render(ctx: CanvasRenderingContext2D): void {
     if (this.collected) return;
 
-    const scale = Math.min(window.innerWidth / 1900, window.innerHeight / 900);
-    const scaledWidth = this.width * Math.max(scale, 0.8);
-    const scaledHeight = this.height * Math.max(scale, 0.8);
-    const renderY = this.y + this.floatOffset;
+    const y = this.y + this.floatOffset;
 
-    ctx.save();
-    
-    // Glow effect
-    ctx.shadowColor = this.getGlowColor();
-    ctx.shadowBlur = 10 * scale;
-    
-    // Main body
-    ctx.fillStyle = this.getMainColor();
-    ctx.fillRect(this.x, renderY, scaledWidth, scaledHeight);
-    
-    // Icon
-    ctx.fillStyle = '#FFFFFF';
-    ctx.font = `${16 * scale}px Arial`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(
-      this.getIcon(),
-      this.x + scaledWidth / 2,
-      renderY + scaledHeight / 2
-    );
-    
-    ctx.restore();
-  }
-
-  private getMainColor(): string {
+    // Draw based on type
     switch (this.type) {
-      case PowerUpType.HEALTH: return '#FF0000';
-      case PowerUpType.SPEED: return '#00FF00';
-      case PowerUpType.JUMP: return '#0000FF';
-      case PowerUpType.SHIELD: return '#FFD700';
-      default: return '#FFFFFF';
+      case PowerUpType.HEALTH:
+        ctx.fillStyle = '#FF0000';
+        this.drawHeart(ctx, this.x, y, this.width, this.height);
+        break;
+      case PowerUpType.SPEED:
+        ctx.fillStyle = '#00FFFF';
+        this.drawLightning(ctx, this.x, y, this.width, this.height);
+        break;
+      case PowerUpType.JUMP:
+        ctx.fillStyle = '#00FF00';
+        this.drawSpring(ctx, this.x, y, this.width, this.height);
+        break;
+      case PowerUpType.SHIELD:
+        ctx.fillStyle = '#FFFF00';
+        this.drawShield(ctx, this.x, y, this.width, this.height);
+        break;
     }
   }
 
-  private getGlowColor(): string {
+  private drawHeart(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number): void {
+    ctx.beginPath();
+    ctx.moveTo(x + w / 2, y + h / 4);
+    ctx.bezierCurveTo(x + w / 2, y, x, y, x, y + h / 4);
+    ctx.bezierCurveTo(x, y + h / 2, x + w / 2, y + h, x + w / 2, y + h);
+    ctx.bezierCurveTo(x + w / 2, y + h, x + w, y + h / 2, x + w, y + h / 4);
+    ctx.bezierCurveTo(x + w, y, x + w / 2, y, x + w / 2, y + h / 4);
+    ctx.fill();
+  }
+
+  private drawLightning(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number): void {
+    ctx.beginPath();
+    ctx.moveTo(x + w / 2, y);
+    ctx.lineTo(x + w, y + h / 3);
+    ctx.lineTo(x + w / 2, y + h / 3);
+    ctx.lineTo(x + w / 2, y + h);
+    ctx.lineTo(x, y + h / 3 * 2);
+    ctx.lineTo(x + w / 2, y + h / 3 * 2);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  private drawSpring(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number): void {
+    ctx.fillRect(x, y + h / 2, w, h / 2);
+    ctx.fillRect(x + w / 4, y, w / 2, h / 2);
+  }
+
+  private drawShield(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number): void {
+    ctx.beginPath();
+    ctx.arc(x + w / 2, y + h / 2, w / 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = '#FFFFFF';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  public collect(player: Player): void {
+    this.collected = true;
+
     switch (this.type) {
-      case PowerUpType.HEALTH: return '#FF6666';
-      case PowerUpType.SPEED: return '#66FF66';
-      case PowerUpType.JUMP: return '#6666FF';
-      case PowerUpType.SHIELD: return '#FFFF66';
-      default: return '#FFFFFF';
+      case PowerUpType.HEALTH:
+        player.heal(25);
+        break;
+      case PowerUpType.SPEED:
+        player.increaseSpeed();
+        break;
+      case PowerUpType.JUMP:
+        player.increaseJump();
+        break;
+      case PowerUpType.SHIELD:
+        player.setInvulnerable(5000);
+        break;
     }
   }
 
-  private getIcon(): string {
-    switch (this.type) {
-      case PowerUpType.HEALTH: return '+';
-      case PowerUpType.SPEED: return '→';
-      case PowerUpType.JUMP: return '↑';
-      case PowerUpType.SHIELD: return '◊';
-      default: return '?';
-    }
+  public isCollected(): boolean {
+    return this.collected;
   }
 
   public getBounds() {
@@ -95,14 +120,5 @@ export class PowerUp {
       width: this.width,
       height: this.height
     };
-  }
-
-  public collect(): PowerUpType {
-    this.collected = true;
-    return this.type;
-  }
-
-  public isCollected(): boolean {
-    return this.collected;
   }
 }

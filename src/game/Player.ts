@@ -1,5 +1,7 @@
 import { InputSystem } from '../engine/InputSystem';
-import { AudioManager } from './AudioManager';
+import { AudioSystem } from '../engine/AudioSystem';
+import { GameEngine } from '../engine/GameEngine';
+import { ParticleSystem } from './ParticleSystem';
 
 export class Player {
   public x: number;
@@ -23,17 +25,43 @@ export class Player {
   private maxHealth: number = 100;
   private invulnerable: boolean = false;
   private invulnerabilityTimer: number = 0;
-  private audioManager: AudioManager | null = null;
+  private audioSystem: AudioSystem | null = null;
   private gameWidth: number;
   private gameHeight: number;
+  private particleSystem: ParticleSystem | null = null;
 
   constructor(x: number, y: number) {
     this.x = x;
     this.y = y;
     this.gameWidth = typeof window !== 'undefined' ? window.innerWidth : 1900;
     this.gameHeight = typeof window !== 'undefined' ? window.innerHeight : 900;
-    // Initialize audio manager
-    this.audioManager = new AudioManager();
+  }
+
+  public setAudioSystem(audioSystem: AudioSystem): void {
+    this.audioSystem = audioSystem;
+  }
+
+  public setParticleSystem(particleSystem: ParticleSystem): void {
+    this.particleSystem = particleSystem;
+  }
+
+  public takeDamage(amount: number = 25): void {
+    this.loseLife();
+  }
+
+  public increaseSpeed(): void {
+    this.speed *= 1.5;
+    setTimeout(() => this.speed /= 1.5, 5000);
+  }
+
+  public increaseJump(): void {
+    this.jumpPower *= 1.2;
+    setTimeout(() => this.jumpPower /= 1.2, 5000);
+  }
+
+  public setInvulnerable(duration: number): void {
+    this.invulnerable = true;
+    this.invulnerabilityTimer = duration;
   }
 
   public update(deltaTime: number, inputSystem: InputSystem): void {
@@ -66,8 +94,19 @@ export class Player {
       this.velocityY = -this.jumpPower;
       this.onGround = false;
       this.jumpAnimationTimer = 300; // Jump animation duration
-      if (this.audioManager) {
-        this.audioManager.playSound('jump');
+      if (this.audioSystem) {
+        this.audioSystem.playSound('jump');
+      }
+
+      // Screen Shake (subtle)
+      const engine = GameEngine.getInstance();
+      if (engine) {
+        engine.getScreenShake().shake(3, 150);
+      }
+
+      // Jump Dust
+      if (this.particleSystem) {
+        this.particleSystem.addJumpDust(this.x + this.width / 2, this.y + this.height);
       }
     }
 
