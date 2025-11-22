@@ -1,6 +1,6 @@
 import { Player } from './Player';
 import { Turtle } from './Turtle';
-import { Game } from './Game';
+
 import { GameEngine } from '../engine/GameEngine';
 import { BaseLevel } from './BaseLevel';
 import { FinishFlag } from './FinishFlag';

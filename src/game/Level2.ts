@@ -4,7 +4,7 @@ import { Turtle } from './Turtle';
 import { Level } from './Level';
 import { PowerUp, PowerUpType } from './PowerUp';
 import { FinishFlag } from './FinishFlag';
-import { Game } from './Game';
+
 import { GameEngine } from '../engine/GameEngine';
 
 export class Level2 extends Level {

@@ -6,7 +6,7 @@ import { FinishFlag } from './FinishFlag';
 import { InteractiveEnemy } from './InteractiveEnemy';
 import { Projectile } from './Projectile';
 import { Player } from './Player';
-import { Game } from './Game';
+
 import { GameEngine } from '../engine/GameEngine';
 
 export class Level6 extends Level2 {
