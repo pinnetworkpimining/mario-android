@@ -177,7 +177,7 @@ export class ParticleSystem {
 
 
   public update(deltaTime: number): void {
-    const dt = deltaTime / 1000;
+    const dt = deltaTime;
 
     this.particles = this.particles.filter(particle => {
       particle.life -= deltaTime;

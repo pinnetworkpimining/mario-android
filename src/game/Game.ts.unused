@@ -22,7 +22,7 @@ class GameLogger {
     const logMessage = `[${timestamp}] ${level}: ${message}`;
     this.logs.push(logMessage);
     console.log(logMessage);
-    
+
     // Keep only last 100 logs
     if (this.logs.length > 100) {
       this.logs.shift();
@@ -58,22 +58,22 @@ export class Game {
   constructor(canvas: HTMLCanvasElement) {
     this.logger = GameLogger.getInstance();
     this.logger.log('Game constructor called');
-    
+
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d')!;
-    
+
     // Set game dimensions for mobile landscape
     this.gameWidth = window.innerWidth;
     this.gameHeight = window.innerHeight;
-    
+
     this.logger.log(`Game dimensions: ${this.gameWidth}x${this.gameHeight}`);
-    
+
     this.inputSystem = new InputSystem(canvas);
     this.camera = new Camera(canvas);
     this.audioManager = new AudioSystem();
 
     this.loadLevel(1);
-    
+
     this.logger.log('Game initialization complete');
   }
 
@@ -136,6 +136,9 @@ export class Game {
       // Place player at start position
       this.player = new Player(startX, groundY - 64); // 64 = player height
 
+      // Connect player to level (important for particle/audio systems)
+      this.level.setPlayer(this.player);
+
       // Set camera bounds
       this.camera.setLevelBounds(this.level.getLevelWidth(), this.level.getLevelHeight());
 
@@ -149,12 +152,12 @@ export class Game {
       // Fallback to level 1
       this.level = new Level();
       this.player = new Player(startX, groundY - 64);
+      this.level.setPlayer(this.player);
       this.camera.setLevelBounds(this.level.getLevelWidth(), this.level.getLevelHeight());
       this.updateUI();
       this.isTransitioning = false;
     }
   }
-
 
   private handleResize(): void {
     this.logger.log('Handling resize event');
@@ -211,11 +214,11 @@ export class Game {
     const deltaTime = currentTime - this.lastTime;
     this.lastTime = currentTime;
     if (!this.paused) {
-          console.log(`Delta time: ${deltaTime}ms`);
+      // console.log(`Delta time: ${deltaTime}ms`);
 
       this.update(deltaTime);
     }
-    
+
     this.render();
 
     requestAnimationFrame((time) => this.gameLoop(time));
@@ -224,19 +227,19 @@ export class Game {
   private update(deltaTime: number): void {
     // Update player
     this.player.update(deltaTime, this.inputSystem);
-    
+
     // Update level
     this.level.update(deltaTime);
-    
+
     // Update camera to follow player
     this.camera.followPlayer(this.player.x, this.player.y);
-    
+
     // Check collisions
     this.checkCollisions();
-    
+
     // Update UI
     this.updateUI();
-    
+
     // Play ambient sounds occasionally
     if (Math.random() < 0.001) { // 0.1% chance per frame
       this.audioManager.playSound('bird');
@@ -252,7 +255,7 @@ export class Game {
 
     // Check collisions with level
     this.level.checkCollisions(this.player);
-    
+
     // Check level completion
     if (this.level.isCompleted && this.level.isCompleted() && !this.levelCompleteShown) {
       this.logger.log(`Level ${this.currentLevel} completed`);
@@ -262,11 +265,11 @@ export class Game {
 
   private playerDie(): void {
     if (this.gameOverShown) return; // Prevent multiple calls
-    
+
     this.logger.log('Player died');
     this.lives--;
     this.audioManager.playSound('hurt');
-    
+
     if (this.lives <= 0) {
       this.gameOver();
     } else {
@@ -281,11 +284,11 @@ export class Game {
   private completeLevel(): void {
     if (this.levelCompleteShown) return; // Prevent multiple calls
     this.levelCompleteShown = true;
-    
+
     this.logger.log(`Level ${this.currentLevel} complete`);
     this.audioManager.playSound('levelcomplete');
     this.score += 1000;
-    
+
     if (this.currentLevel < 6) {
       this.showMessage(`Level ${this.currentLevel} Complete!`, () => {
         this.logger.log(`Transitioning to level ${this.currentLevel + 1}`);
@@ -305,11 +308,11 @@ export class Game {
   private gameOver(): void {
     if (this.gameOverShown) return; // Prevent multiple calls
     this.gameOverShown = true;
-    
+
     this.logger.log('Game over');
     this.audioManager.playSound('gameover');
     this.audioManager.stopMusic();
-    
+
     this.showMessage(`Game Over! Final Score: ${this.score}`, () => {
       this.goToMenu();
     });
@@ -317,12 +320,12 @@ export class Game {
 
   private showMessage(text: string, callback?: () => void): void {
     this.logger.log(`Showing message: ${text}`);
-    
+
     const message = document.createElement('div');
     message.className = 'game-message';
     message.textContent = text;
     document.body.appendChild(message);
-    
+
     setTimeout(() => {
       if (document.body.contains(message)) {
         document.body.removeChild(message);
@@ -357,16 +360,16 @@ export class Game {
     gradient.addColorStop(1, '#0f3460');
     this.ctx.fillStyle = gradient;
     this.ctx.fillRect(0, 0, this.gameWidth, this.gameHeight);
-    
+
     // Apply camera transformation
     this.camera.apply(this.ctx);
-    
+
     // Draw level
     this.level.render(this.ctx);
-    
+
     // Draw player
     this.player.render(this.ctx);
-    
+
     // Restore camera transformation
     this.camera.restore(this.ctx);
 
@@ -377,7 +380,7 @@ export class Game {
     if (this.paused) {
       this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
       this.ctx.fillRect(0, 0, this.gameWidth, this.gameHeight);
-      
+
       this.ctx.fillStyle = 'white';
       this.ctx.font = `${this.gameHeight * 0.08}px Arial`;
       this.ctx.textAlign = 'center';

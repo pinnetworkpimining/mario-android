@@ -28,7 +28,7 @@ export class Turtle {
       return;
     }
 
-    const dt = deltaTime / 1000; // Convert to seconds
+    const dt = deltaTime; // Delta time is already in seconds
 
     // Handle stunned state
     if (this.isStunned) {

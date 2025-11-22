@@ -65,7 +65,7 @@ export class Player {
   }
 
   public update(deltaTime: number, inputSystem: InputSystem): void {
-    const dt = deltaTime / 1000; // Convert milliseconds to seconds
+    const dt = deltaTime; // Delta time is already in seconds
 
     // Update invulnerability
     if (this.invulnerable) {

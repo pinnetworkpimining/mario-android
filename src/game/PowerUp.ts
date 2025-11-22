@@ -25,7 +25,7 @@ export class PowerUp {
 
   public update(deltaTime: number): void {
     this.animationTimer += deltaTime;
-    this.floatOffset = Math.sin(this.animationTimer / 500) * 5;
+    this.floatOffset = Math.sin(this.animationTimer * 3) * 5;
   }
 
   public render(ctx: CanvasRenderingContext2D): void {
