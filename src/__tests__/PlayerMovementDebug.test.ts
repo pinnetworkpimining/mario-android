@@ -66,7 +66,7 @@ describe('Player Movement Debug', () => {
         console.log('[TEST] KeyDown: Space dispatched to document');
 
         // Update
-        player.update(16, inputSystem);
+        player.update(0.016, inputSystem);
 
         console.log(`[TEST] After Jump Update: y=${player.y}, velocityY=${player.getVelocityY()}`);
 

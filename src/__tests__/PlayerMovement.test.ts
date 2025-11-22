@@ -38,10 +38,10 @@ describe('Player Movement', () => {
 
         // Simulate ArrowRight key press
         const keyDownEvent = new KeyboardEvent('keydown', { code: 'ArrowRight' });
-        mockCanvas.dispatchEvent(keyDownEvent);
+        document.dispatchEvent(keyDownEvent);
 
         // Update player
-        player.update(16, inputSystem); // 16ms = ~60fps
+        player.update(0.016, inputSystem); // 16ms = ~60fps
 
         // Player should have moved right (x increased)
         expect(player.x).toBeGreaterThan(initialX);
@@ -53,10 +53,10 @@ describe('Player Movement', () => {
 
         // Simulate ArrowLeft key press
         const keyDownEvent = new KeyboardEvent('keydown', { code: 'ArrowLeft' });
-        mockCanvas.dispatchEvent(keyDownEvent);
+        document.dispatchEvent(keyDownEvent);
 
         // Update player
-        player.update(16, inputSystem);
+        player.update(0.016, inputSystem);
 
         // Player should have moved left (x decreased)
         expect(player.x).toBeLessThan(initialX);
@@ -68,10 +68,10 @@ describe('Player Movement', () => {
 
         // Simulate Space key press
         const keyDownEvent = new KeyboardEvent('keydown', { code: 'Space' });
-        mockCanvas.dispatchEvent(keyDownEvent);
+        document.dispatchEvent(keyDownEvent);
 
         // Update player
-        player.update(16, inputSystem);
+        player.update(0.016, inputSystem);
 
         // Player should have negative velocity (jumping up)
         expect(player.getVelocityY()).toBeLessThan(0);
@@ -82,10 +82,10 @@ describe('Player Movement', () => {
 
         // Simulate D key press (right)
         const keyDownEvent = new KeyboardEvent('keydown', { code: 'KeyD' });
-        mockCanvas.dispatchEvent(keyDownEvent);
+        document.dispatchEvent(keyDownEvent);
 
         // Update player
-        player.update(16, inputSystem);
+        player.update(0.016, inputSystem);
 
         // Player should have moved right
         expect(player.x).toBeGreaterThan(initialX);
@@ -94,12 +94,12 @@ describe('Player Movement', () => {
     it('should stop moving when no keys are pressed', () => {
         // First move the player
         const keyDownEvent = new KeyboardEvent('keydown', { code: 'ArrowRight' });
-        mockCanvas.dispatchEvent(keyDownEvent);
-        player.update(16, inputSystem);
+        document.dispatchEvent(keyDownEvent);
+        player.update(0.016, inputSystem);
 
         // Then release the key
         const keyUpEvent = new KeyboardEvent('keyup', { code: 'ArrowRight' });
-        mockCanvas.dispatchEvent(keyUpEvent);
+        document.dispatchEvent(keyUpEvent);
 
         // Update several times to let velocity decay
         for (let i = 0; i < 10; i++) {

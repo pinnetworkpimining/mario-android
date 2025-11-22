@@ -4,7 +4,7 @@ import { InputSystem } from '../engine/InputSystem'
 
 // Mock canvas for InputSystem
 const mockCanvas = {
-  addEventListener: () => {},
+  addEventListener: () => { },
   getBoundingClientRect: () => ({ left: 0, top: 0, width: 800, height: 600 })
 } as any
 describe('Player', () => {
@@ -25,24 +25,24 @@ describe('Player', () => {
     // Simulate key press through private method access
     (inputSystem as any).inputState.keys.set('ArrowLeft', true)
     const initialX = player.x
-    
-    player.update(16, inputSystem) // 16ms delta time
-    
+
+    player.update(0.016, inputSystem) // 16ms delta time
+
     expect(player.x).toBeLessThan(initialX)
   })
 
   it('should move right when ArrowRight is pressed', () => {
     (inputSystem as any).inputState.keys.set('ArrowRight', true)
     const initialX = player.x
-    
-    player.update(16, inputSystem)
-    
+
+    player.update(0.016, inputSystem)
+
     expect(player.x).toBeGreaterThan(initialX)
   })
 
   it('should not move horizontally when no keys are pressed', () => {
     const initialX = player.x
-    player.update(16, inputSystem)
+    player.update(0.016, inputSystem)
     expect(player.x).toBe(initialX)
   })
 
@@ -50,7 +50,7 @@ describe('Player', () => {
     player.setOnGround(true);
     (inputSystem as any).inputState.keys.set('Space', true)
     const initialY = player.y
-    player.update(16, inputSystem)
+    player.update(0.016, inputSystem)
     expect(player.y).toBeLessThan(initialY)
   })
 
@@ -58,14 +58,14 @@ describe('Player', () => {
     player.setOnGround(false);
     (inputSystem as any).inputState.keys.set('Space', true)
     const initialY = player.y
-    player.update(16, inputSystem)
-  expect(player.y).toBeCloseTo(initialY, 0)
+    player.update(0.016, inputSystem)
+    expect(player.y).toBeCloseTo(initialY, 0)
   })
 
   it('should apply gravity when not on ground', () => {
     player.setOnGround(false)
     const initialY = player.y
-    player.update(16, inputSystem)
+    player.update(0.016, inputSystem)
     expect(player.y).toBeGreaterThan(initialY)
   })
 
@@ -109,9 +109,9 @@ describe('Player', () => {
         const platform = { x: 0, y: 464, width: 800, height: 50 };
 
         if (playerBounds.x < platform.x + platform.width &&
-            playerBounds.x + playerBounds.width > platform.x &&
-            playerBounds.y < platform.y + platform.height &&
-            playerBounds.y + playerBounds.height >= platform.y) {
+          playerBounds.x + playerBounds.width > platform.x &&
+          playerBounds.y < platform.y + platform.height &&
+          playerBounds.y + playerBounds.height >= platform.y) {
           player.setOnGround(true);
         }
       }

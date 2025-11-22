@@ -43,6 +43,13 @@ const mockAudioContext = {
 global.AudioContext = vi.fn(() => mockAudioContext) as any
   ; (global as any).webkitAudioContext = vi.fn(() => mockAudioContext) as any
 
+// Mock fetch for loading sounds
+global.fetch = vi.fn(() => Promise.resolve({
+  arrayBuffer: () => Promise.resolve(new ArrayBuffer(8)),
+  json: () => Promise.resolve({}),
+  text: () => Promise.resolve('')
+})) as any;
+
 describe('AudioSystem', () => {
   let audioSystem: AudioSystem
 

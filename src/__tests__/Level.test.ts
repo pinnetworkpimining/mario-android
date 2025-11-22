@@ -1,6 +1,20 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { Level } from '../game/Level'
 import { Player } from '../game/Player'
+import { GameEngine } from '../engine/GameEngine'
+
+// Mock GameEngine
+const mockGameEngine = {
+  getConfig: () => ({ width: 800, height: 600 }),
+  getAudioSystem: () => ({
+    playSound: vi.fn()
+  }),
+  getScreenShake: () => ({
+    shake: vi.fn()
+  })
+};
+
+(GameEngine.getInstance as any) = vi.fn(() => mockGameEngine);
 
 describe('Level', () => {
   let level: Level
@@ -37,6 +51,7 @@ describe('Level', () => {
       moveTo: vi.fn(),
       lineTo: vi.fn(),
       arc: vi.fn(),
+      bezierCurveTo: vi.fn(),
       fill: vi.fn(),
       stroke: vi.fn(),
       createLinearGradient: vi.fn(() => ({
