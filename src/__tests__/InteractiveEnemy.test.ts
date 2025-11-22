@@ -1,5 +1,21 @@
-import { describe, it, expect, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { InteractiveEnemy } from '../game/InteractiveEnemy'
+
+// Mock GameEngine module
+vi.mock('../engine/GameEngine', () => {
+  const mockScreenShake = {
+    shake: vi.fn()
+  };
+
+  return {
+    GameEngine: {
+      getInstance: vi.fn(() => ({
+        getScreenShake: () => mockScreenShake,
+        getConfig: () => ({ width: 800, height: 600 })
+      }))
+    }
+  };
+});
 
 describe('InteractiveEnemy', () => {
   let shooter: InteractiveEnemy
